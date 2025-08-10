@@ -9,6 +9,7 @@ import (
 func main() {
 	fmt.Println("cli/desktop version of gameboy emulator")
 
-	gameboy.Init()
-
+	gb := gameboy.New()
+	gb.Init()
+	gb.Debug()
 }

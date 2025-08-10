@@ -1,11 +1,27 @@
 package gameboy
 
-import "fmt"
+import (
+	"fmt"
 
-type Gameboy struct {
-	memory [0xFFFF]uint16 //64KB
+	"github.com/brunocroh/gameboy/gameboy/cpu"
+	"github.com/brunocroh/gameboy/gameboy/mmu"
+)
+
+type GameBoy struct {
+	cpu *cpu.CPU
+	mmu *mmu.MemoryManagementUnit
 }
 
-func Init() {
-	fmt.Println("emulator entrypoint")
+func New() *GameBoy {
+	return &GameBoy{}
+}
+
+func (m *GameBoy) Init() {
+	m.mmu = mmu.New()
+	m.mmu.Init()
+	m.cpu = cpu.New(m.mmu)
+}
+
+func (m *GameBoy) Debug() {
+	fmt.Println(m.mmu.Dump())
 }
