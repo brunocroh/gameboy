@@ -20,8 +20,15 @@ func (m *GameBoy) Init() {
 	m.mmu = mmu.New()
 	m.mmu.Init()
 	m.cpu = cpu.New(m.mmu)
+	m.cpu.Init()
+}
+
+func (m *GameBoy) Update() {
+	m.cpu.Cycle()
 }
 
 func (m *GameBoy) Debug() {
+	fmt.Println("======== DEBUG =========")
 	fmt.Println(m.mmu.Dump())
+	fmt.Println("========================")
 }

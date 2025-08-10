@@ -1,8 +1,14 @@
 package mmu
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 const BOOTROM_SIZE = 256
+
+const HRAM_START = 0xFF80
+const HRAM_END = 0xFFE
 
 var BOOTROM = [BOOTROM_SIZE]byte{
 	0x31, 0xfe, 0xff, 0xaf, 0x21, 0xff, 0x9f, 0x32, 0xcb, 0x7c, 0x20, 0xfb,
@@ -35,8 +41,19 @@ type MemoryManagementUnit struct {
 	vram [0x4000]byte
 }
 
-func (m *MemoryManagementUnit) Dump() (int, error) {
-	return fmt.Printf("memory %b", m.hram)
+func (m *MemoryManagementUnit) Dump() string {
+	var str strings.Builder
+	str.WriteString("\n")
+	for i := 0; i < len(m.hram); i += 2 {
+		if i%16 == 0 && i != 0 {
+			str.WriteString("\n")
+		}
+		s := fmt.Sprintf("%02x%02x ", m.hram[i], m.hram[i+1])
+		str.WriteString(s)
+
+	}
+	str.WriteString("\n")
+	return strings.ToUpper(str.String())
 }
 
 func New() *MemoryManagementUnit {
@@ -45,4 +62,12 @@ func New() *MemoryManagementUnit {
 
 func (m *MemoryManagementUnit) Init() {
 	m.hram = BOOTROM
+}
+
+func (m *MemoryManagementUnit) Read(address uint16) byte {
+	if address < HRAM_END && address > HRAM_START {
+		return m.hram[address]
+	}
+
+	return m.wram[address]
 }

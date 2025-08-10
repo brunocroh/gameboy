@@ -24,13 +24,12 @@ type CPU struct {
 }
 
 func New(mmu *mmu.MemoryManagementUnit) *CPU {
-
 	return &CPU{
 		mmu: mmu,
 	}
 }
 
-func (m *CPU) Init(mmu *mmu.MemoryManagementUnit) {
+func (m *CPU) Init() {
 	m.pc = 0x0100
 	m.sp = 0xFFFE
 	m.a = 0x01
@@ -43,20 +42,20 @@ func (m *CPU) Init(mmu *mmu.MemoryManagementUnit) {
 	m.l = 0x4D
 }
 
-func Cycle() {
-
-	fetch()
-	decode()
+func (m *CPU) Cycle() {
+	opcode := m.fetch()
+	decode(opcode)
 	instruction()
 }
 
-func fetch() {
-	fmt.Println("fetch")
-
+func (m *CPU) fetch() uint16 {
+	pc := m.pc
+	m.pc += 2
+	return pc
 }
 
-func decode() {
-	fmt.Println("fetch")
+func decode(opcode uint16) {
+	fmt.Println("decode", opcode)
 }
 
 func instruction() {

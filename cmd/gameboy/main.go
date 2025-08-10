@@ -12,4 +12,9 @@ func main() {
 	gb := gameboy.New()
 	gb.Init()
 	gb.Debug()
+
+	gb.Update()
+	gb.Update()
+
+	gb.Debug()
 }
