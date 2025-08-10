@@ -43,21 +43,19 @@ func (m *CPU) Init() {
 }
 
 func (m *CPU) Cycle() {
-	opcode := m.fetch()
-	decode(opcode)
-	instruction()
+	opcode := m.fetchOpcode()
+	m.execInstruction(opcode)
 }
 
-func (m *CPU) fetch() uint16 {
+func (m *CPU) fetchOpcode() uint16 {
 	pc := m.pc
 	m.pc += 2
-	return pc
+
+	opcode := uint16(m.mmu.Read(pc))<<8 | uint16(m.mmu.Read(pc+1))
+
+	return opcode
 }
 
-func decode(opcode uint16) {
-	fmt.Println("decode", opcode)
-}
-
-func instruction() {
-	fmt.Println("instruction")
+func (m *CPU) execInstruction(opcode uint16) {
+	fmt.Println("opcode:", opcode)
 }

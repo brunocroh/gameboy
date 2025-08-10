@@ -16,5 +16,5 @@ func main() {
 	gb.Update()
 	gb.Update()
 
-	gb.Debug()
+	// gb.Debug()
 }

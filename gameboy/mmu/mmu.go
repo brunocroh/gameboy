@@ -62,6 +62,8 @@ func New() *MemoryManagementUnit {
 
 func (m *MemoryManagementUnit) Init() {
 	m.hram = BOOTROM
+	m.wram[0x0100] = 0x31
+	m.wram[0x0101] = 0xFE
 }
 
 func (m *MemoryManagementUnit) Read(address uint16) byte {
