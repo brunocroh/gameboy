@@ -1,7 +1,7 @@
 run:
-	go run cmd/main.go
+	go run cmd/gameboy/main.go
 
 run-watch:
-	gow run cmd/main.go
+	gow run cmd/gameboy/main.go
 
 .PHONY: run run-watch
