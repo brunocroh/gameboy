@@ -7,6 +7,8 @@ import (
 )
 
 type CPU struct {
+	ins *instructions
+
 	mmu *mmu.MemoryManagementUnit
 
 	pc uint16
@@ -24,8 +26,10 @@ type CPU struct {
 }
 
 func New(mmu *mmu.MemoryManagementUnit) *CPU {
+	i := instructionsNew()
 	return &CPU{
 		mmu: mmu,
+		ins: i,
 	}
 }
 
@@ -47,15 +51,18 @@ func (m *CPU) Cycle() {
 	m.execInstruction(opcode)
 }
 
-func (m *CPU) fetchOpcode() uint16 {
+func (m *CPU) fetchOpcode() byte {
 	pc := m.pc
-	m.pc += 2
+	m.pc += 1
 
-	opcode := uint16(m.mmu.Read(pc))<<8 | uint16(m.mmu.Read(pc+1))
-
-	return opcode
+	return m.mmu.RB(pc)
 }
 
-func (m *CPU) execInstruction(opcode uint16) {
-	fmt.Println("opcode:", opcode)
+func (m *CPU) execInstruction(opcode byte) {
+	switch opcode {
+	case 0xC3:
+		m.ins.jpAddr(m, m.mmu.RW(m.pc))
+	default:
+		fmt.Printf("opcode (0x%x) not implemented\n", opcode)
+	}
 }

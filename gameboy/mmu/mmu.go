@@ -66,10 +66,24 @@ func (m *MemoryManagementUnit) Init() {
 	m.wram[0x0101] = 0xFE
 }
 
-func (m *MemoryManagementUnit) Read(address uint16) byte {
+func (m *MemoryManagementUnit) RB(address uint16) byte {
 	if address < HRAM_END && address > HRAM_START {
 		return m.hram[address]
 	}
 
 	return m.wram[address]
+}
+
+func (m *MemoryManagementUnit) RW(address uint16) uint16 {
+	var b1, b2 byte
+
+	if address < HRAM_END && address > HRAM_START {
+		b1 = m.hram[address]
+		b2 = m.hram[address+1]
+	} else {
+		b1 = m.wram[address]
+		b2 = m.wram[address+1]
+	}
+
+	return uint16(b1)<<8 | uint16(b2)
 }
