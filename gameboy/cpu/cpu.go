@@ -48,6 +48,7 @@ func (m *CPU) Init() {
 
 func (m *CPU) Cycle() {
 	opcode := m.fetchOpcode()
+	m.doCycle(1)
 	m.execInstruction(opcode)
 }
 
