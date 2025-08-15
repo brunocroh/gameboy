@@ -39,6 +39,8 @@ type MemoryManagementUnit struct {
 	hram [0x100]byte
 	wram [0x8000]byte
 	vram [0x4000]byte
+
+	ticks uint32
 }
 
 func (m *MemoryManagementUnit) Dump() string {
@@ -86,4 +88,9 @@ func (m *MemoryManagementUnit) RW(address uint16) uint16 {
 	}
 
 	return uint16(b1)<<8 | uint16(b2)
+}
+
+func (m *MemoryManagementUnit) DoCycle(ticks uint32) uint32 {
+	m.ticks += ticks
+	return m.ticks
 }

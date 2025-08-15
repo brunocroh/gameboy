@@ -59,10 +59,19 @@ func (m *CPU) fetchOpcode() byte {
 }
 
 func (m *CPU) execInstruction(opcode byte) {
+	var ticks uint32
 	switch opcode {
 	case 0xC3:
-		m.ins.jpAddr(m, m.mmu.RW(m.pc))
+		ticks = m.ins.jpAddr(m, m.mmu.RW(m.pc))
 	default:
 		fmt.Printf("opcode (0x%x) not implemented\n", opcode)
 	}
+
+	if ticks != 0 {
+		m.doCycle(ticks)
+	}
+}
+
+func (m *CPU) doCycle(ticks uint32) uint32 {
+	return m.mmu.DoCycle(ticks * 4)
 }
