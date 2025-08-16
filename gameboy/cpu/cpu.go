@@ -51,12 +51,24 @@ func (m *CPU) fetchOpcode() byte {
 func (m *CPU) execInstruction(opcode byte) {
 	var ticks uint32
 	switch opcode {
+	case 0x02:
+		ticks = m.ins.ld_BC_A(m)
 	case 0x06:
-		ticks = m.ins.ld_r_n(m, m.PC)
-	case 0xC3:
-		ticks = m.ins.jp_nn(m, m.PC)
+		ticks = m.ins.ld_r_n(m)
+	case 0x0A:
+		ticks = m.ins.ld_A_BC(m)
+	case 0x1A:
+		ticks = m.ins.ld_A_DE(m)
+	case 0x36:
+		ticks = m.ins.ld_HL_n(m)
 	case 0x41:
 		ticks = m.ins.ld_rr(m)
+	case 0x46:
+		ticks = m.ins.ld_r_HL(m)
+	case 0x70:
+		ticks = m.ins.ld_HL_r(m)
+	case 0xC3:
+		ticks = m.ins.jp_nn(m)
 	default:
 		fmt.Printf("opcode (0x%x) not implemented\n", opcode)
 	}

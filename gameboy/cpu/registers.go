@@ -26,3 +26,15 @@ func (m *register) Init() {
 	m.h = 0x01
 	m.l = 0x4D
 }
+
+func (m *register) HL() uint16 {
+	return uint16(m.h)<<8 | uint16(m.l)
+}
+
+func (m *register) BC() uint16 {
+	return uint16(m.b)<<8 | uint16(m.c)
+}
+
+func (m *register) DE() uint16 {
+	return uint16(m.d)<<8 | uint16(m.e)
+}

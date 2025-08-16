@@ -76,6 +76,14 @@ func (m *MemoryManagementUnit) RB(address uint16) byte {
 	return m.wram[address]
 }
 
+func (m *MemoryManagementUnit) WB(address uint16, value byte) {
+	if address < HRAM_END && address > HRAM_START {
+		m.hram[address] = value
+	}
+
+	m.wram[address] = value
+}
+
 func (m *MemoryManagementUnit) RW(address uint16) uint16 {
 	var b1, b2 byte
 
