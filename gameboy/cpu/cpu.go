@@ -39,17 +39,16 @@ func (m *CPU) Cycle() {
 }
 
 func (m *CPU) fetchOpcode() byte {
-	pc := m.pc
-	m.pc += 1
-
-	return m.mmu.RB(pc)
+	return m.rb(m.pc)
 }
 
 func (m *CPU) execInstruction(opcode byte) {
 	var ticks uint32
 	switch opcode {
+	case 0x06:
+		ticks = m.ins.ldBAddress(m, m.pc)
 	case 0xC3:
-		ticks = m.ins.jpAddr(m, m.mmu.RW(m.pc))
+		ticks = m.ins.jpAddr(m, m.pc)
 	case 0x41:
 		ticks = m.ins.ldBC(m)
 	default:
@@ -59,6 +58,18 @@ func (m *CPU) execInstruction(opcode byte) {
 	if ticks != 0 {
 		m.doCycle(ticks)
 	}
+}
+
+func (m *CPU) rb(addr uint16) byte {
+	value := m.mmu.RB(addr)
+	m.pc += 1
+	return value
+}
+
+func (m *CPU) rw(addr uint16) uint16 {
+	value := m.mmu.RW(addr)
+	m.pc += 2
+	return value
 }
 
 func (m *CPU) doCycle(ticks uint32) uint32 {
