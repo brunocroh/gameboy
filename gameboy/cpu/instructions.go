@@ -15,7 +15,7 @@ func instructionsNew() *instructions {
 // OPCODE: 0x41
 // Cycles: 1
 func (m *instructions) ldBC(cpu *CPU) uint32 {
-	cpu.b = cpu.c
+	cpu.register.b = cpu.register.c
 	return 0
 }
 
