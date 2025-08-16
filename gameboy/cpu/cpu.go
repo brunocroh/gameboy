@@ -12,8 +12,8 @@ type CPU struct {
 	ins      *instructions
 	register *register
 
-	pc uint16
-	sp uint16
+	PC uint16
+	SP uint16
 }
 
 func New(mmu *mmu.MemoryManagementUnit) *CPU {
@@ -27,8 +27,8 @@ func New(mmu *mmu.MemoryManagementUnit) *CPU {
 }
 
 func (m *CPU) Init() {
-	m.pc = 0x0100
-	m.sp = 0xFFFE
+	m.PC = 0x0100
+	m.SP = 0xFFFE
 	m.register.Init()
 }
 
@@ -38,19 +38,25 @@ func (m *CPU) Cycle() {
 	m.execInstruction(opcode)
 }
 
+func (m *CPU) popPC() uint16 {
+	pc := m.PC
+	m.PC += 1
+	return pc
+}
+
 func (m *CPU) fetchOpcode() byte {
-	return m.rb(m.pc)
+	return m.mmu.RB(m.popPC())
 }
 
 func (m *CPU) execInstruction(opcode byte) {
 	var ticks uint32
 	switch opcode {
 	case 0x06:
-		ticks = m.ins.ldBAddress(m, m.pc)
+		ticks = m.ins.ld_r_n(m, m.PC)
 	case 0xC3:
-		ticks = m.ins.jpAddr(m, m.pc)
+		ticks = m.ins.jp_nn(m, m.PC)
 	case 0x41:
-		ticks = m.ins.ldBC(m)
+		ticks = m.ins.ld_rr(m)
 	default:
 		fmt.Printf("opcode (0x%x) not implemented\n", opcode)
 	}
@@ -60,15 +66,9 @@ func (m *CPU) execInstruction(opcode byte) {
 	}
 }
 
-func (m *CPU) rb(addr uint16) byte {
-	value := m.mmu.RB(addr)
-	m.pc += 1
-	return value
-}
-
 func (m *CPU) rw(addr uint16) uint16 {
 	value := m.mmu.RW(addr)
-	m.pc += 2
+	m.PC += 2
 	return value
 }
 

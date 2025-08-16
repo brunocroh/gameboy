@@ -16,7 +16,7 @@ Load to the 8-bit register r, data from the 8-bit register r'.
 
 Machine Cycles: 1
 */
-func (m *instructions) ldBC(cpu *CPU) uint32 {
+func (m *instructions) ld_rr(cpu *CPU) uint32 {
 	cpu.register.b = cpu.register.c
 	return 0
 }
@@ -28,8 +28,21 @@ Load to the 8-bit register r, the immediate data n.
 
 Machine Cycles: 2
 */
-func (m *instructions) ldBAddr(cpu *CPU, addr uint16) uint32 {
-	cpu.register.b = cpu.rb(addr)
+func (m *instructions) ld_r_n(cpu *CPU) uint32 {
+	cpu.register.b = cpu.mmu.RB(cpu.popPC())
+	return 1
+}
+
+/*
+0x46 - LD r, (HL): Load register (indirect HL)
+
+Load to the 8-bit register r, data from the absolute address specified by the 16-bit register HL.
+
+Machine Cycles: 2
+*/
+func (m *instructions) ld_r_HL(cpu *CPU) uint32 {
+	addr := uint16(cpu.register.h)<<8 | uint16(cpu.register.l)
+	cpu.register.b = cpu.mmu.RB(addr)
 	return 1
 }
 
@@ -50,8 +63,8 @@ Unconditional jump to the absolute address specified by the 16-bit immediate ope
 
 Machine Cycles: 4
 */
-func (m *instructions) jpAddr(cpu *CPU, addr uint16) uint32 {
-	cpu.pc = cpu.rw(addr)
+func (m *instructions) jp_nn(cpu *CPU, addr uint16) uint32 {
+	cpu.PC = cpu.rw(addr)
 	return 3
 }
 
