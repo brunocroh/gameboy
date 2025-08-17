@@ -368,12 +368,20 @@ Machine Cycles: 3
 func (m *instructions) ld_HL_spe(cpu *CPU) uint32 {
 	e := cpu.mmu.RB(cpu.popPC())
 	result := cpu.SP + uint16(e)
+
+	tmp := cpu.SP ^ uint16(e) ^ result
+
 	cpu.register.h = uint8(result >> 8)
 	cpu.register.l = uint8(result & 0x00FF)
-	// TODO: Need implement flags to finish this one
 
+	cpu.register.setFlag("Z", false)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", (tmp&0x10) == 0x10)
+	cpu.register.setFlag("C", (tmp&0x100) == 0x100)
 	return 3
 }
+
+// ---- 8-Bit Arithmetic and logical ----
 
 /*
 0x80 - ADD r: Add (register)
@@ -382,8 +390,18 @@ adds to the 8-bit A register, the 8-bit register r, and stores the result back i
 
 Machine Cycles: 1
 */
-func (m *instructions) ld_add_r(cpu *CPU) uint32 {
-	// TODO: Need implement flags to finish this one
+func (m *instructions) add_r(cpu *CPU) uint32 {
+	a := cpu.register.a
+	b := cpu.register.b
+
+	sum := a + b
+	cpu.register.a = sum
+
+	cpu.register.setFlag("Z", sum == 0x0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", (a&0xF)+(b&0xF) > 0xF)
+	cpu.register.setFlag("C", uint16(a)+uint16(b) > 0xFF)
+
 	return 1
 }
 
@@ -395,9 +413,20 @@ and stores the result back into the A register.
 
 Machine Cycles: 2
 */
-func (m *instructions) ld_add_HL(cpu *CPU) uint32 {
-	// TODO: Need implement flags to finish this one
-	return 1
+func (m *instructions) add_HL(cpu *CPU) uint32 {
+	hl := uint16(cpu.register.h)<<8 | uint16(cpu.register.l)
+	a := cpu.register.a
+
+	n := cpu.mmu.RB(hl)
+
+	sum := a + n
+
+	cpu.register.setFlag("Z", sum == 0x0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", (a&0xF)+(n&0xF) > 0xF)
+	cpu.register.setFlag("C", uint16(a)+uint16(n) > 0xFF)
+
+	return 2
 }
 
 /*
@@ -407,8 +436,18 @@ Adds to the 8-bit A register, the immediate data n, and stores the result back i
 
 Machine Cycles: 2
 */
-func (m *instructions) ld_add_n(cpu *CPU) uint32 {
-	// TODO: Need implement flags to finish this one
+func (m *instructions) add_n(cpu *CPU) uint32 {
+	n := cpu.mmu.RB(cpu.popPC())
+	a := cpu.register.a
+
+	sum := a + n
+
+	cpu.register.a = sum
+
+	cpu.register.setFlag("Z", sum == 0x0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", (a&0xF)+(n&0xF) > 0xF)
+	cpu.register.setFlag("C", uint16(a)+uint16(n) > 0xFF)
 	return 2
 }
 
@@ -420,12 +459,109 @@ into the A register.
 
 Machine Cycles: 1
 */
-func (m *instructions) ld_add_rc(cpu *CPU) uint32 {
-	// TODO: Need implement flags to finish this one
+func (m *instructions) adc_r(cpu *CPU) uint32 {
+	c := uint8(0)
+	if cpu.register.getFlag("C") {
+		c = 1
+	}
+
+	a := cpu.register.a
+	b := cpu.register.b
+
+	sum := a + b + c
+
+	cpu.register.a = sum
+
+	cpu.register.setFlag("Z", sum == 0x0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", (a&0xF)+(b&0xF)+c > 0xF)
+	cpu.register.setFlag("C", uint16(a)+uint16(b)+uint16(c) > 0xFF)
+
+	return 1
+}
+
+/*
+0x8E - ADC (HL): Add with carry (indirect HL)
+
+Adds to the 8-bit A register, the carry flag and data from the absolute address specified by the
+16-bit register HL, and stores the result back into the A register.
+
+Machine Cycles: 2
+*/
+func (m *instructions) adc_HL(cpu *CPU) uint32 {
+	hl := uint16(cpu.register.h)<<8 | uint16(cpu.register.l)
+	c := uint8(0)
+	if cpu.register.getFlag("C") {
+		c = 1
+	}
+
+	n := cpu.mmu.RB(hl)
+	a := cpu.register.a
+
+	sum := a + n + c
+
+	cpu.register.a = sum
+
+	cpu.register.setFlag("Z", sum == 0x0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", (a&0xF)+(n&0xF)+c > 0xF)
+	cpu.register.setFlag("C", uint16(a)+uint16(n)+uint16(c) > 0xFF)
+
 	return 2
 }
 
-// ---- 8-Bit Arithmetic and logical ----
+/*
+0xCE - ADC n: Add with carry (immediate)
+
+Adds to the 8-bit A register, the carry flag and the immediate data n, and stores the result back
+into the A register
+
+Machine Cycles: 2
+*/
+func (m *instructions) adc_n(cpu *CPU) uint32 {
+	c := uint8(0)
+	if cpu.register.getFlag("C") {
+		c = 1
+	}
+
+	n := cpu.mmu.RB(cpu.popPC())
+	a := cpu.register.a
+
+	sum := a + n + c
+
+	cpu.register.a = sum
+
+	cpu.register.setFlag("Z", sum == 0x0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", (a&0xF)+(n&0xF)+c > 0xF)
+	cpu.register.setFlag("C", uint16(a)+uint16(n)+uint16(c) > 0xFF)
+
+	return 2
+}
+
+/*
+0x90 - SUB r: Subtract (register)
+
+Subtracts from the 8-bit A register, the 8-bit register r, and stores the result back into the A
+register.
+
+Machine Cycles: 1
+*/
+func (m *instructions) sub_r(cpu *CPU) uint32 {
+	a := cpu.register.a
+	b := cpu.register.b
+
+	r := a - b
+
+	cpu.register.a = r
+
+	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("N", true)
+	cpu.register.setFlag("H", (a&0x0F) < (b&0x0F))
+	cpu.register.setFlag("C", uint16(a) < uint16(b))
+
+	return 1
+}
 
 // ---- 16-Bit Arithmetic and logical ----
 
