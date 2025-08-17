@@ -41,7 +41,8 @@ Load to the 8-bit register r, data from the absolute address specified by the 16
 Machine Cycles: 2
 */
 func (m *instructions) ld_r_HL(cpu *CPU) uint32 {
-	cpu.register.b = cpu.mmu.RB(cpu.register.HL())
+	hl := uint16(cpu.register.h)<<8 | uint16(cpu.register.l)
+	cpu.register.b = cpu.mmu.RB(hl)
 	return 1
 }
 
@@ -53,7 +54,8 @@ Load to the absolute address specified by the 16-bit register HL, data from the 
 Machine Cycles: 2
 */
 func (m *instructions) ld_HL_r(cpu *CPU) uint32 {
-	cpu.mmu.WB(cpu.register.HL(), cpu.register.b)
+	hl := uint16(cpu.register.h)<<8 | uint16(cpu.register.l)
+	cpu.mmu.WB(hl, cpu.register.b)
 	return 1
 }
 
@@ -65,8 +67,9 @@ Load to the absolute address specified by the 16-bit register HL, the immediate 
 Machine Cycles: 3
 */
 func (m *instructions) ld_HL_n(cpu *CPU) uint32 {
+	hl := uint16(cpu.register.h)<<8 | uint16(cpu.register.l)
 	n := cpu.mmu.RB(cpu.popPC())
-	cpu.mmu.WB(cpu.register.HL(), n)
+	cpu.mmu.WB(hl, n)
 	return 2
 }
 
@@ -78,7 +81,8 @@ Load to the 8-bit A register, data from the absolute address specified by the 16
 Machine Cycles: 2
 */
 func (m *instructions) ld_A_BC(cpu *CPU) uint32 {
-	cpu.register.a = cpu.mmu.RB(cpu.register.BC())
+	bc := uint16(cpu.register.b)<<8 | uint16(cpu.register.c)
+	cpu.register.a = cpu.mmu.RB(bc)
 	return 1
 }
 
@@ -90,7 +94,8 @@ Load to the 8-bit A register, data from the absolute address specified by the 16
 Machine Cycles: 2
 */
 func (m *instructions) ld_A_DE(cpu *CPU) uint32 {
-	cpu.register.a = cpu.mmu.RB(cpu.register.DE())
+	de := uint16(cpu.register.d)<<8 | uint16(cpu.register.e)
+	cpu.register.a = cpu.mmu.RB(de)
 	return 1
 }
 
@@ -102,7 +107,8 @@ Load to the absolute address specified by the 16-bit register BC, data from the 
 Machine Cycles: 2
 */
 func (m *instructions) ld_BC_A(cpu *CPU) uint32 {
-	cpu.mmu.WB(cpu.register.BC(), cpu.register.a)
+	bc := uint16(cpu.register.b)<<8 | uint16(cpu.register.c)
+	cpu.mmu.WB(bc, cpu.register.a)
 	return 1
 }
 
@@ -114,7 +120,8 @@ Load to the absolute address specified by the 16-bit register DE, data from the 
 Machine Cycles: 2
 */
 func (m *instructions) ld_DE_A(cpu *CPU) uint32 {
-	cpu.mmu.WB(cpu.register.DE(), cpu.register.a)
+	de := uint16(cpu.register.d)<<8 | uint16(cpu.register.e)
+	cpu.mmu.WB(de, cpu.register.a)
 	return 1
 }
 
@@ -250,23 +257,6 @@ func (m *instructions) ld_A_HLi(cpu *CPU) uint32 {
 	cpu.register.h = uint8(value >> 8)
 	cpu.register.l = uint8(value & 0x00FF)
 	cpu.register.a = cpu.mmu.RB(hl)
-	return 1
-}
-
-/*
-0x22 - LD (HL+), A: Load from accumulator (indirect HL, increment)
-
-Load to the absolute address specified by the 16-bit register HL, data from the 8-bit A register.
-The value of HL is incremented after the memory write.
-
-Machine Cycles: 2
-*/
-func (m *instructions) ld_HLi_A(cpu *CPU) uint32 {
-	hl := uint16(cpu.register.h)<<8 | uint16(cpu.register.l)
-	value := hl + 1
-	cpu.register.h = uint8(value >> 8)
-	cpu.register.l = uint8(value & 0x00FF)
-	cpu.mmu.WB(hl, cpu.register.a)
 	return 1
 }
 
