@@ -1157,6 +1157,100 @@ func (m *instructions) cpl(cpu *CPU) uint32 {
 
 // ---- 16-Bit Arithmetic and logical ----
 
+/*
+0x03 - INC rr: Increment 16-bit register
+
+Increments data in the 16-bit register rr.
+
+Machine Cycles: 2
+*/
+func (m *instructions) inc_rr(cpu *CPU) uint32 {
+	b := cpu.register.b
+	c := cpu.register.c
+
+	bc := uint16(b)<<8 | uint16(c)
+
+	bc += 1
+
+	cpu.register.b = uint8(bc >> 8)
+	cpu.register.c = uint8(b & 0x00FF)
+
+	return 2
+}
+
+/*
+0x0B - DEC rr: Decrement 16-bit register
+
+Decrements data in the 16-bit register rr.
+
+Machine Cycles: 2
+*/
+func (m *instructions) dec_rr(cpu *CPU) uint32 {
+	b := cpu.register.b
+	c := cpu.register.c
+
+	bc := uint16(b)<<8 | uint16(c)
+
+	bc -= 1
+
+	cpu.register.b = uint8(bc >> 8)
+	cpu.register.c = uint8(b & 0x00FF)
+
+	return 2
+}
+
+/*
+0x09 - ADD HL, rr: Add (16-bit register)
+
+Adds to the 16-bit HL register pair, the 16-bit register rr, and stores the result back into the HL
+register pair.
+
+Machine Cycles: 2
+*/
+func (m *instructions) add_HL_rr(cpu *CPU) uint32 {
+	b := cpu.register.b
+	c := cpu.register.c
+	bc := uint16(b)<<8 | uint16(c)
+
+	h := cpu.register.h
+	l := cpu.register.l
+	hl := uint16(h)<<8 | uint16(l)
+
+	r := hl + bc
+
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", (bc&0x07FF)+(hl&0x07FF) > 0x07FF)
+	cpu.register.setFlag("C", bc > 0xFFFF-hl)
+
+	cpu.register.h = uint8(r >> 8)
+	cpu.register.l = uint8(r & 0x00FF)
+
+	return 2
+}
+
+/*
+0xE8 - ADD SP, e: Add to stack pointer (relative)
+
+Loads to the 16-bit SP register, 16-bit data calculated by adding the signed 8-bit operand e to
+the 16-bit value of the SP register.
+
+Machine Cycles: 4
+*/
+func (m *instructions) add_sp_e(cpu *CPU) uint32 {
+	e := uint16(cpu.mmu.RB(cpu.popPC()))
+
+	r := cpu.SP + e
+
+	cpu.register.setFlag("Z", false)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", (cpu.SP&0x000F)+(e&0x000F) > 0x000F)
+	cpu.register.setFlag("C", (cpu.SP&0x00FF)+(e&0x00FF) > 0x00FF)
+
+	cpu.SP = r
+
+	return 4
+}
+
 // ---- Rotate, shift and bit ----
 
 // ---- FLOW ----
