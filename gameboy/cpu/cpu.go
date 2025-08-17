@@ -57,6 +57,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ld_BC_A(m)
 	case 0x06:
 		ticks = m.ins.ld_r_n(m)
+	case 0x08:
+		ticks = m.ins.ld_nn_sp(m)
 	case 0x0A:
 		ticks = m.ins.ld_A_BC(m)
 	case 0x12:
@@ -79,8 +81,12 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ld_r_HL(m)
 	case 0x70:
 		ticks = m.ins.ld_HL_r(m)
+	case 0xC1:
+		ticks = m.ins.ld_pop_rr(m)
 	case 0xC3:
 		ticks = m.ins.jp_nn(m)
+	case 0xC5:
+		ticks = m.ins.ld_push_rr(m)
 	case 0xE0:
 		ticks = m.ins.ldh_n_A(m)
 	case 0xE2:
@@ -91,6 +97,10 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ldh_A_n(m)
 	case 0xF2:
 		ticks = m.ins.ldh_A_C(m)
+	case 0xF8:
+		ticks = m.ins.ld_HL_spe(m)
+	case 0xF9:
+		ticks = m.ins.ld_sp_HL(m)
 	case 0xFA:
 		ticks = m.ins.ld_A_nn(m)
 	default:

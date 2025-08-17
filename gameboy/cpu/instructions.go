@@ -287,12 +287,142 @@ Load to the 16-bit register rr, the immediate 16-bit data nn.
 Machine Cycles: 3
 */
 func (m *instructions) ld_rr_nn(cpu *CPU) uint32 {
-	value := cpu.rw(cpu.PC)
+	word := cpu.rw(cpu.PC)
 
-	cpu.register.b = uint8(value >> 8)
-	cpu.register.c = uint8(value & 0x00FF)
+	cpu.register.b = uint8(word >> 8)
+	cpu.register.c = uint8(word & 0x00FF)
+	return 3
+}
+
+/*
+0x08 - LD (nn), SP: Load from stack pointer (direct)
+
+Load to the absolute address specified by the 16-bit operand nn, data from the 16-bit SP register.
+
+Machine Cycles: 5
+*/
+func (m *instructions) ld_nn_sp(cpu *CPU) uint32 {
+	word := cpu.rw(cpu.PC)
+
+	sp_msb := uint8(cpu.SP >> 8)
+	sp_lsb := uint8(cpu.SP | 0x00FF)
+	cpu.mmu.WB(word, sp_lsb)
+	word += 1
+	cpu.mmu.WB(word, sp_msb)
+	return 5
+}
+
+/*
+0xF9 - Load stack pointer from HL
+
+Load to the 16-bit SP register, data from the 16-bit HL register.
+
+Machine Cycles: 2
+*/
+func (m *instructions) ld_sp_HL(cpu *CPU) uint32 {
+	cpu.SP = uint16(cpu.register.h)<<8 | uint16(cpu.register.l)
+	return 2
+}
+
+/*
+0xC5 - PUSH rr: Push to stack
+
+Push to the stack memory, data from the 16-bit register rr.
+
+Machine Cycles: 4
+*/
+func (m *instructions) ld_push_rr(cpu *CPU) uint32 {
+	cpu.SP -= 1
+	cpu.mmu.WB(cpu.SP, cpu.register.b)
+	cpu.SP -= 1
+	cpu.mmu.WB(cpu.SP, cpu.register.c)
+	return 4
+}
+
+/*
+0xC1 - POP rr: Pop from stack
+
+Pops to the 16-bit register rr, data from the stack memory.
+This instruction does not do calculations that affect flags, but POP AF completely replaces the
+F register value, so all flags are changed based on the 8-bit data that is read from memory.
+
+Machine Cycles: 3
+*/
+func (m *instructions) ld_pop_rr(cpu *CPU) uint32 {
+	word := cpu.mmu.RW(cpu.SP)
+	cpu.SP += 2
+
+	cpu.register.b = uint8(word >> 8)
+	cpu.register.c = uint8(word & 0x00FF)
+	return 3
+}
+
+/*
+0xF8 - LD HL, SP+e: Load HL from adjusted stack pointer
+
+Load to the HL register, 16-bit data calculated by adding the signed 8-bit operand e to the 16-
+bit value of the SP register.
+
+Machine Cycles: 3
+*/
+func (m *instructions) ld_HL_spe(cpu *CPU) uint32 {
+	e := cpu.mmu.RB(cpu.popPC())
+	result := cpu.SP + uint16(e)
+	cpu.register.h = uint8(result >> 8)
+	cpu.register.l = uint8(result & 0x00FF)
+	// TODO: Need implement flags to finish this one
 
 	return 3
+}
+
+/*
+0x80 - ADD r: Add (register)
+
+adds to the 8-bit A register, the 8-bit register r, and stores the result back into the A register
+
+Machine Cycles: 1
+*/
+func (m *instructions) ld_add_r(cpu *CPU) uint32 {
+	// TODO: Need implement flags to finish this one
+	return 1
+}
+
+/*
+0x86 - ADD (HL): Add (indirect HL)
+
+Adds to the 8-bit A register, data from the absolute address specified by the 16-bit register HL,
+and stores the result back into the A register.
+
+Machine Cycles: 2
+*/
+func (m *instructions) ld_add_HL(cpu *CPU) uint32 {
+	// TODO: Need implement flags to finish this one
+	return 1
+}
+
+/*
+0xC6 - ADD n: Add (immediate)
+
+Adds to the 8-bit A register, the immediate data n, and stores the result back into the A register.
+
+Machine Cycles: 2
+*/
+func (m *instructions) ld_add_n(cpu *CPU) uint32 {
+	// TODO: Need implement flags to finish this one
+	return 2
+}
+
+/*
+0x88 - ADC r: Add with carry (register)
+
+Adds to the 8-bit A register, the carry flag and the 8-bit register r, and stores the result back
+into the A register.
+
+Machine Cycles: 1
+*/
+func (m *instructions) ld_add_rc(cpu *CPU) uint32 {
+	// TODO: Need implement flags to finish this one
+	return 2
 }
 
 // ---- 8-Bit Arithmetic and logical ----
