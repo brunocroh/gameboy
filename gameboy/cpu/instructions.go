@@ -823,26 +823,46 @@ func (m *instructions) inc_HL(cpu *CPU) uint32 {
 }
 
 /*
-0x05 - INC (HL): Increment (indirect HL)
+0x05 - DEC r: Decrement (register)
 
-# Increments data at the absolute address specified by the 16-bit register HL
+# Decrements data in the 8-bit register r
+
+Machine Cycles: 1
+*/
+func (m *instructions) dec_r(cpu *CPU) uint32 {
+	b := cpu.register.b
+
+	r := b - 1
+	cpu.register.b = r
+
+	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", (b&0x0F)-1 > 0x0F)
+
+	return 1
+}
+
+/*
+0x35 - DEC (HL): Decrement (indirect HL)
+
+Decrements data at the absolute address specified by the 16-bit register HL.
 
 Machine Cycles: 3
 */
-func (m *instructions) inc_HL(cpu *CPU) uint32 {
+func (m *instructions) dec_HL(cpu *CPU) uint32 {
 	h := cpu.register.h
 	l := cpu.register.l
 	hl := uint16(h)<<8 | uint16(l)
 
 	data := cpu.mmu.RB(hl)
 
-	r := data + 1
+	r := data - 1
 
 	cpu.mmu.WB(hl, r)
 
 	cpu.register.setFlag("Z", r == 0x0)
 	cpu.register.setFlag("N", false)
-	cpu.register.setFlag("H", (data&0x0F)+1 > 0x0F)
+	cpu.register.setFlag("H", (data&0x0F)-1 > 0x0F)
 
 	return 3
 }
