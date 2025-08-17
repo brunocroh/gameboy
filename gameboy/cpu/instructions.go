@@ -563,6 +563,240 @@ func (m *instructions) sub_r(cpu *CPU) uint32 {
 	return 1
 }
 
+/*
+0x96 - SUB (HL): Subtract (indirect HL)
+
+Subtracts from the 8-bit A register, data from the absolute address specified by the 16-bit
+register HL, and stores the result back into the A register.
+
+Machine Cycles: 2
+*/
+func (m *instructions) sub_HL(cpu *CPU) uint32 {
+	a := cpu.register.a
+	h := cpu.register.h
+	l := cpu.register.l
+	hl := uint16(h)<<8 | uint16(l)
+
+	n := cpu.mmu.RB(hl)
+
+	r := a - n
+
+	cpu.register.a = r
+
+	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("N", true)
+	cpu.register.setFlag("H", (a&0x0F) < (n&0x0F))
+	cpu.register.setFlag("C", uint16(a) < uint16(n))
+
+	return 2
+}
+
+/*
+0xD6 - SUB n: Subtract (immediate)
+
+Subtracts from the 8-bit A register, the immediate data n, and stores the result back into the A
+register.
+
+Machine Cycles: 2
+*/
+func (m *instructions) sub_n(cpu *CPU) uint32 {
+	a := cpu.register.a
+	n := cpu.mmu.RB(cpu.popPC())
+
+	r := a - n
+
+	cpu.register.a = r
+
+	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("N", true)
+	cpu.register.setFlag("H", (a&0x0F) < (n&0x0F))
+	cpu.register.setFlag("C", uint16(a) < uint16(n))
+
+	return 2
+}
+
+/*
+0x98 - SBC r: Subtract with carry (register)
+
+Subtracts from the 8-bit A register, the carry flag and the 8-bit register r, and stores the result
+back into the A register.
+
+Machine Cycles: 1
+*/
+func (m *instructions) sbc_r(cpu *CPU) uint32 {
+	a := cpu.register.a
+	b := cpu.register.b
+	c := uint8(0)
+	if cpu.register.getFlag("C") {
+		c = 1
+	}
+
+	r := a - b - c
+
+	cpu.register.a = r
+
+	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("N", true)
+	cpu.register.setFlag("H", (a&0x0F) < ((b&0x0F)+c))
+	cpu.register.setFlag("C", uint16(a) < (uint16(b)+uint16(c)))
+
+	return 1
+}
+
+/*
+0x9E - SBC (HL): Subtract with carry (indirect HL)
+
+Subtracts from the 8-bit A register, the carry flag and the 8-bit register r, and stores the result
+back into the A register.
+
+Machine Cycles: 2
+*/
+func (m *instructions) sbc_HL(cpu *CPU) uint32 {
+	a := cpu.register.a
+	h := cpu.register.h
+	l := cpu.register.l
+	hl := uint16(h)<<8 | uint16(l)
+
+	c := uint8(0)
+	if cpu.register.getFlag("C") {
+		c = 1
+	}
+
+	n := cpu.mmu.RB(hl)
+
+	r := a - n - c
+
+	cpu.register.a = r
+
+	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("N", true)
+	cpu.register.setFlag("H", (a&0x0F) < ((n&0x0F)+c))
+	cpu.register.setFlag("C", uint16(a) < (uint16(n)+uint16(c)))
+
+	return 2
+}
+
+/*
+0xDE - SBC n: Subtract with carry (immediate)
+
+Subtracts from the 8-bit A register, the carry flag and the immediate data n, and stores the
+result back into the A register.
+
+Machine Cycles: 2
+*/
+func (m *instructions) sbc_n(cpu *CPU) uint32 {
+	a := cpu.register.a
+
+	c := uint8(0)
+	if cpu.register.getFlag("C") {
+		c = 1
+	}
+
+	n := cpu.mmu.RB(cpu.popPC())
+
+	r := a - n - c
+
+	cpu.register.a = r
+
+	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("N", true)
+	cpu.register.setFlag("H", (a&0x0F) < ((n&0x0F)+c))
+	cpu.register.setFlag("C", uint16(a) < (uint16(n)+uint16(c)))
+
+	return 2
+}
+
+/*
+0xB8 - CP r: Compare (register)
+
+Subtracts from the 8-bit A register, the 8-bit register r, and updates flags based on the result.
+This instruction is basically identical to SUB r, but does not update the A register.
+
+Machine Cycles: 1
+*/
+func (m *instructions) cp_r(cpu *CPU) uint32 {
+	a := cpu.register.a
+	b := cpu.register.b
+
+	r := a - b
+
+	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("N", true)
+	cpu.register.setFlag("H", (a&0x0F) < (b&0x0F))
+	cpu.register.setFlag("C", uint16(a) < uint16(b))
+
+	return 1
+}
+
+/*
+0xBE - CP (HL): Compare (indirect HL)
+
+Subtracts from the 8-bit A register, data from the absolute address specified by the 16-bit
+register HL, and updates flags based on the result. This instruction is basically identical to SUB
+(HL), but does not update the A register
+
+Machine Cycles: 2
+*/
+func (m *instructions) cp_HL(cpu *CPU) uint32 {
+	a := cpu.register.a
+	h := cpu.register.h
+	l := cpu.register.l
+	hl := uint16(h)<<8 | uint16(l)
+
+	n := cpu.mmu.RB(hl)
+
+	r := a - n
+
+	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("N", true)
+	cpu.register.setFlag("H", (a&0x0F) < (n&0x0F))
+	cpu.register.setFlag("C", uint16(a) < uint16(n))
+
+	return 2
+}
+
+/*
+0xFE - CP n: Compare (immediate)
+
+Subtracts from the 8-bit A register, the immediate data n, and updates flags based on the result.
+This instruction is basically identical to SUB n, but does not update the A register.
+
+Machine Cycles: 2
+*/
+func (m *instructions) cp_n(cpu *CPU) uint32 {
+	a := cpu.register.a
+	n := cpu.mmu.RB(cpu.popPC())
+
+	r := a - n
+
+	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("N", true)
+	cpu.register.setFlag("H", (a&0x0F) < (n&0x0F))
+	cpu.register.setFlag("C", uint16(a) < uint16(n))
+
+	return 2
+}
+
+/*
+0x04 - INC r: Increment (register)
+
+# Increments data in the 8-bit register r
+
+Machine Cycles: 2
+*/
+func (m *instructions) inc_r(cpu *CPU) uint32 {
+	b := cpu.register.b
+
+	r := b + 1
+	cpu.register.b = r
+
+	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", (b&0x0F)+1 > 0x0F)
+
+	return 2
+}
+
 // ---- 16-Bit Arithmetic and logical ----
 
 // ---- Rotate, shift and bit ----
