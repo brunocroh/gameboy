@@ -279,6 +279,22 @@ func (m *instructions) ld_HLi_A(cpu *CPU) uint32 {
 
 // ---- 16-Bit Load Instructions ----
 
+/*
+0x01 - LD rr, nn: Load 16-bit register / register pair
+
+Load to the 16-bit register rr, the immediate 16-bit data nn.
+
+Machine Cycles: 3
+*/
+func (m *instructions) ld_rr_nn(cpu *CPU) uint32 {
+	value := cpu.rw(cpu.PC)
+
+	cpu.register.b = uint8(value >> 8)
+	cpu.register.c = uint8(value & 0x00FF)
+
+	return 2
+}
+
 // ---- 8-Bit Arithmetic and logical ----
 
 // ---- 16-Bit Arithmetic and logical ----
