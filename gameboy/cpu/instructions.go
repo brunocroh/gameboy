@@ -1,5 +1,7 @@
 package cpu
 
+import "fmt"
+
 type instructions struct {
 }
 
@@ -865,6 +867,292 @@ func (m *instructions) dec_HL(cpu *CPU) uint32 {
 	cpu.register.setFlag("H", (data&0x0F)-1 > 0x0F)
 
 	return 3
+}
+
+/*
+0xA0 - AND r: Bitwise AND (register)
+
+Performs a bitwise AND operation between the 8-bit A register and the 8-bit register r, and
+stores the result back into the A register.
+
+Machine Cycles: 1
+*/
+func (m *instructions) and_r(cpu *CPU) uint32 {
+	a := cpu.register.a
+	b := cpu.register.b
+
+	r := a & b
+
+	cpu.register.a = r
+
+	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", true)
+	cpu.register.setFlag("C", false)
+
+	return 1
+}
+
+/*
+0xA6 - AND (HL): Bitwise AND (indirect HL)
+
+Performs a bitwise AND operation between the 8-bit A register and data from the absolute
+address specified by the 16-bit register HL, and stores the result back into the A register.
+
+Machine Cycles: 2
+*/
+func (m *instructions) and_HL(cpu *CPU) uint32 {
+	a := cpu.register.a
+	h := cpu.register.h
+	l := cpu.register.l
+	hl := uint16(h)<<8 | uint16(l)
+
+	data := cpu.mmu.RB(hl)
+
+	r := a & data
+
+	cpu.register.a = r
+
+	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", true)
+	cpu.register.setFlag("C", false)
+
+	return 2
+}
+
+/*
+0xE6 - AND n: Bitwise AND (immediate)
+
+Performs a bitwise AND operation between the 8-bit A register and immediate data n, and
+stores the result back into the A register.
+
+Machine Cycles: 2
+*/
+func (m *instructions) and_n(cpu *CPU) uint32 {
+	a := cpu.register.a
+	n := cpu.mmu.RB(cpu.popPC())
+
+	r := a & n
+
+	cpu.register.a = r
+
+	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", true)
+	cpu.register.setFlag("C", false)
+
+	return 2
+}
+
+/*
+0xB0 - OR r: Bitwise OR (register)
+
+Performs a bitwise OR operation between the 8-bit A register and the 8-bit register r, and stores
+the result back into the A register.
+
+Machine Cycles: 1
+*/
+func (m *instructions) or_r(cpu *CPU) uint32 {
+	a := cpu.register.a
+	b := cpu.register.b
+
+	r := a | b
+
+	cpu.register.a = r
+
+	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", false)
+
+	return 1
+}
+
+/*
+0xB6 - OR (HL): Bitwise OR (indirect HL)
+
+Performs a bitwise OR operation between the 8-bit A register and data from the absolute
+address specified by the 16-bit register HL, and stores the result back into the A register.
+
+Machine Cycles: 2
+*/
+func (m *instructions) or_HL(cpu *CPU) uint32 {
+	a := cpu.register.a
+	h := cpu.register.h
+	l := cpu.register.l
+
+	hl := uint16(h)<<8 | uint16(l)
+
+	data := cpu.mmu.RB(hl)
+
+	r := a | data
+
+	cpu.register.a = r
+
+	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", false)
+
+	return 2
+}
+
+/*
+0xF6 - OR n: Bitwise OR (immediate)
+
+# Performs a bitwise OR operation between the 8-bit A register and immediate data n, and stores
+the result back into the A register.
+
+Machine Cycles: 2
+*/
+func (m *instructions) or_n(cpu *CPU) uint32 {
+	a := cpu.register.a
+	n := cpu.mmu.RB(cpu.popPC())
+	r := a | n
+
+	cpu.register.a = r
+
+	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", false)
+
+	return 2
+}
+
+/*
+0xAE - XOR (HL): Bitwise XOR (indirect HL)
+
+Performs a bitwise XOR operation between the 8-bit A register and data from the absolute
+address specified by the 16-bit register HL, and stores the result back into the A register.
+
+Machine Cycles: 2
+*/
+func (m *instructions) xor_HL(cpu *CPU) uint32 {
+	a := cpu.register.a
+	h := cpu.register.h
+	l := cpu.register.l
+
+	hl := uint16(h)<<8 | uint16(l)
+
+	data := cpu.mmu.RB(hl)
+
+	r := a ^ data
+
+	cpu.register.a = r
+
+	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", false)
+
+	return 2
+}
+
+/*
+0xA8 - XOR r: Bitwise XOR (register)
+
+Performs a bitwise XOR operation between the 8-bit A register and the 8-bit register r, and
+stores the result back into the A register.
+
+Machine Cycles: 1
+*/
+func (m *instructions) xor_r(cpu *CPU) uint32 {
+	a := cpu.register.a
+	b := cpu.register.b
+
+	r := a ^ b
+
+	cpu.register.a = r
+
+	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", false)
+
+	return 1
+}
+
+/*
+0xEE - XOR n: Bitwise XOR (immediate)
+
+Performs a bitwise XOR operation between the 8-bit A register and immediate data n, and
+stores the result back into the A register.
+
+Machine Cycles: 2
+*/
+func (m *instructions) xor_n(cpu *CPU) uint32 {
+	a := cpu.register.a
+	n := cpu.mmu.RB(cpu.popPC())
+
+	r := a ^ n
+
+	cpu.register.a = r
+
+	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", false)
+
+	return 2
+}
+
+/*
+0x3F - CCF: Complement carry flag
+
+Flips the carry flag, and clears the N and H flags.
+
+Machine Cycles: 1
+*/
+func (m *instructions) ccf(cpu *CPU) uint32 {
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", !cpu.register.getFlag("C"))
+
+	return 1
+}
+
+/*
+0x37 - SCF: Set carry flag
+
+Sets the carry flag, and clears the N and H flags.
+
+Machine Cycles: 1
+*/
+func (m *instructions) scf(cpu *CPU) uint32 {
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", true)
+
+	return 1
+}
+
+/*
+0x27 - DAA: Decimal adjust accumulator
+
+# TODO
+
+Machine Cycles: 1
+*/
+func (m *instructions) daa(_ *CPU) uint32 {
+	fmt.Println("NOT IMPLEMENTED")
+	return 1
+}
+
+/*
+0x2F - CPL: Complement accumulator
+
+Flips all the bits in the 8-bit A register, and sets the N and H flags.
+
+Machine Cycles: 1
+*/
+func (m *instructions) cpl(cpu *CPU) uint32 {
+
+	cpu.register.a = ^cpu.register.a
+	cpu.register.setFlag("N", true)
+	cpu.register.setFlag("H", true)
+	return 1
 }
 
 // ---- 16-Bit Arithmetic and logical ----
