@@ -18,7 +18,7 @@ Machine Cycles: 1
 */
 func (m *instructions) ld_rr(cpu *CPU) uint32 {
 	cpu.register.b = cpu.register.c
-	return 0
+	return 1
 }
 
 /*
@@ -30,7 +30,7 @@ Machine Cycles: 2
 */
 func (m *instructions) ld_r_n(cpu *CPU) uint32 {
 	cpu.register.b = cpu.mmu.RB(cpu.popPC())
-	return 1
+	return 2
 }
 
 /*
@@ -43,7 +43,7 @@ Machine Cycles: 2
 func (m *instructions) ld_r_HL(cpu *CPU) uint32 {
 	hl := uint16(cpu.register.h)<<8 | uint16(cpu.register.l)
 	cpu.register.b = cpu.mmu.RB(hl)
-	return 1
+	return 2
 }
 
 /*
@@ -56,7 +56,7 @@ Machine Cycles: 2
 func (m *instructions) ld_HL_r(cpu *CPU) uint32 {
 	hl := uint16(cpu.register.h)<<8 | uint16(cpu.register.l)
 	cpu.mmu.WB(hl, cpu.register.b)
-	return 1
+	return 2
 }
 
 /*
@@ -70,7 +70,7 @@ func (m *instructions) ld_HL_n(cpu *CPU) uint32 {
 	hl := uint16(cpu.register.h)<<8 | uint16(cpu.register.l)
 	n := cpu.mmu.RB(cpu.popPC())
 	cpu.mmu.WB(hl, n)
-	return 2
+	return 3
 }
 
 /*
@@ -83,7 +83,7 @@ Machine Cycles: 2
 func (m *instructions) ld_A_BC(cpu *CPU) uint32 {
 	bc := uint16(cpu.register.b)<<8 | uint16(cpu.register.c)
 	cpu.register.a = cpu.mmu.RB(bc)
-	return 1
+	return 2
 }
 
 /*
@@ -96,7 +96,7 @@ Machine Cycles: 2
 func (m *instructions) ld_A_DE(cpu *CPU) uint32 {
 	de := uint16(cpu.register.d)<<8 | uint16(cpu.register.e)
 	cpu.register.a = cpu.mmu.RB(de)
-	return 1
+	return 2
 }
 
 /*
@@ -109,7 +109,7 @@ Machine Cycles: 2
 func (m *instructions) ld_BC_A(cpu *CPU) uint32 {
 	bc := uint16(cpu.register.b)<<8 | uint16(cpu.register.c)
 	cpu.mmu.WB(bc, cpu.register.a)
-	return 1
+	return 2
 }
 
 /*
@@ -122,7 +122,7 @@ Machine Cycles: 2
 func (m *instructions) ld_DE_A(cpu *CPU) uint32 {
 	de := uint16(cpu.register.d)<<8 | uint16(cpu.register.e)
 	cpu.mmu.WB(de, cpu.register.a)
-	return 1
+	return 2
 }
 
 /*
@@ -135,7 +135,7 @@ Machine Cycles: 4
 func (m *instructions) ld_A_nn(cpu *CPU) uint32 {
 	addr := uint16(cpu.mmu.RB(cpu.popPC()))<<8 | uint16(cpu.mmu.RB(cpu.popPC()))
 	cpu.register.a = cpu.mmu.RB(addr)
-	return 3
+	return 4
 }
 
 /*
@@ -148,7 +148,7 @@ Machine Cycles: 4
 func (m *instructions) ld_nn_A(cpu *CPU) uint32 {
 	addr := uint16(cpu.mmu.RB(cpu.popPC()))<<8 | uint16(cpu.mmu.RB(cpu.popPC()))
 	cpu.mmu.WB(addr, cpu.register.a)
-	return 3
+	return 4
 }
 
 /*
@@ -162,7 +162,7 @@ Machine Cycles: 2
 */
 func (m *instructions) ldh_A_C(cpu *CPU) uint32 {
 	cpu.register.a = cpu.mmu.RB(0xFF00 | uint16(cpu.register.c))
-	return 1
+	return 2
 }
 
 /*
@@ -176,7 +176,7 @@ Machine Cycles: 2
 */
 func (m *instructions) ldh_C_A(cpu *CPU) uint32 {
 	cpu.mmu.WB(0xFF00|uint16(cpu.register.c), cpu.register.a)
-	return 1
+	return 2
 }
 
 /*
@@ -191,7 +191,7 @@ Machine Cycles: 3
 func (m *instructions) ldh_A_n(cpu *CPU) uint32 {
 	n := cpu.mmu.RB(cpu.popPC())
 	cpu.register.a = cpu.mmu.RB(0xFF00 | uint16(n))
-	return 2
+	return 3
 }
 
 /*
@@ -206,7 +206,7 @@ Machine Cycles: 3
 func (m *instructions) ldh_n_A(cpu *CPU) uint32 {
 	n := cpu.mmu.RB(cpu.popPC())
 	cpu.mmu.WB(0xFF00|uint16(n), cpu.register.a)
-	return 2
+	return 3
 }
 
 /*
@@ -223,7 +223,7 @@ func (m *instructions) ld_A_HLd(cpu *CPU) uint32 {
 	cpu.register.h = uint8(value >> 8)
 	cpu.register.l = uint8(value & 0x00FF)
 	cpu.register.a = cpu.mmu.RB(hl)
-	return 1
+	return 2
 }
 
 /*
@@ -240,7 +240,7 @@ func (m *instructions) ld_HLd_A(cpu *CPU) uint32 {
 	cpu.register.h = uint8(value >> 8)
 	cpu.register.l = uint8(value & 0x00FF)
 	cpu.mmu.WB(hl, cpu.register.a)
-	return 1
+	return 2
 }
 
 /*
@@ -257,7 +257,7 @@ func (m *instructions) ld_A_HLi(cpu *CPU) uint32 {
 	cpu.register.h = uint8(value >> 8)
 	cpu.register.l = uint8(value & 0x00FF)
 	cpu.register.a = cpu.mmu.RB(hl)
-	return 1
+	return 2
 }
 
 /*
@@ -274,7 +274,7 @@ func (m *instructions) ld_HLi_A(cpu *CPU) uint32 {
 	cpu.register.h = uint8(value >> 8)
 	cpu.register.l = uint8(value & 0x00FF)
 	cpu.mmu.WB(hl, cpu.register.a)
-	return 1
+	return 2
 }
 
 // ---- 16-Bit Load Instructions ----
@@ -292,7 +292,7 @@ func (m *instructions) ld_rr_nn(cpu *CPU) uint32 {
 	cpu.register.b = uint8(value >> 8)
 	cpu.register.c = uint8(value & 0x00FF)
 
-	return 2
+	return 3
 }
 
 // ---- 8-Bit Arithmetic and logical ----
@@ -312,7 +312,7 @@ Machine Cycles: 4
 */
 func (m *instructions) jp_nn(cpu *CPU) uint32 {
 	cpu.PC = cpu.rw(cpu.PC)
-	return 3
+	return 4
 }
 
 // ---- MISC ----
