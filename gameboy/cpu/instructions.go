@@ -782,7 +782,7 @@ func (m *instructions) cp_n(cpu *CPU) uint32 {
 
 # Increments data in the 8-bit register r
 
-Machine Cycles: 2
+Machine Cycles: 1
 */
 func (m *instructions) inc_r(cpu *CPU) uint32 {
 	b := cpu.register.b
@@ -794,7 +794,57 @@ func (m *instructions) inc_r(cpu *CPU) uint32 {
 	cpu.register.setFlag("N", false)
 	cpu.register.setFlag("H", (b&0x0F)+1 > 0x0F)
 
-	return 2
+	return 1
+}
+
+/*
+0x34 - INC (HL): Increment (indirect HL)
+
+# Increments data at the absolute address specified by the 16-bit register HL
+
+Machine Cycles: 3
+*/
+func (m *instructions) inc_HL(cpu *CPU) uint32 {
+	h := cpu.register.h
+	l := cpu.register.l
+	hl := uint16(h)<<8 | uint16(l)
+
+	data := cpu.mmu.RB(hl)
+
+	r := data + 1
+
+	cpu.mmu.WB(hl, r)
+
+	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", (data&0x0F)+1 > 0x0F)
+
+	return 3
+}
+
+/*
+0x05 - INC (HL): Increment (indirect HL)
+
+# Increments data at the absolute address specified by the 16-bit register HL
+
+Machine Cycles: 3
+*/
+func (m *instructions) inc_HL(cpu *CPU) uint32 {
+	h := cpu.register.h
+	l := cpu.register.l
+	hl := uint16(h)<<8 | uint16(l)
+
+	data := cpu.mmu.RB(hl)
+
+	r := data + 1
+
+	cpu.mmu.WB(hl, r)
+
+	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", (data&0x0F)+1 > 0x0F)
+
+	return 3
 }
 
 // ---- 16-Bit Arithmetic and logical ----

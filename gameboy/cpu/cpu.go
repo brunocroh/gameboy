@@ -73,6 +73,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ld_A_HLi(m)
 	case 0x32:
 		ticks = m.ins.ld_HLd_A(m)
+	case 0x34:
+		ticks = m.ins.inc_HL(m)
 	case 0x36:
 		ticks = m.ins.ld_HL_n(m)
 	case 0x3A:
