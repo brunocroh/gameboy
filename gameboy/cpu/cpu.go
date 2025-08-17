@@ -57,10 +57,20 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ld_r_n(m)
 	case 0x0A:
 		ticks = m.ins.ld_A_BC(m)
+	case 0x12:
+		ticks = m.ins.ld_DE_A(m)
 	case 0x1A:
 		ticks = m.ins.ld_A_DE(m)
+	case 0x22:
+		ticks = m.ins.ld_HLi_A(m)
+	case 0x2A:
+		ticks = m.ins.ld_A_HLi(m)
+	case 0x32:
+		ticks = m.ins.ld_HLd_A(m)
 	case 0x36:
 		ticks = m.ins.ld_HL_n(m)
+	case 0x3A:
+		ticks = m.ins.ld_A_HLd(m)
 	case 0x41:
 		ticks = m.ins.ld_rr(m)
 	case 0x46:
@@ -69,6 +79,18 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ld_HL_r(m)
 	case 0xC3:
 		ticks = m.ins.jp_nn(m)
+	case 0xE0:
+		ticks = m.ins.ldh_n_A(m)
+	case 0xE2:
+		ticks = m.ins.ldh_C_A(m)
+	case 0xEA:
+		ticks = m.ins.ld_nn_A(m)
+	case 0xF0:
+		ticks = m.ins.ldh_A_n(m)
+	case 0xF2:
+		ticks = m.ins.ldh_A_C(m)
+	case 0xFA:
+		ticks = m.ins.ld_A_nn(m)
 	default:
 		fmt.Printf("opcode (0x%x) not implemented\n", opcode)
 	}
