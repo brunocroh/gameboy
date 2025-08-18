@@ -63,6 +63,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.dec_r(m)
 	case 0x06:
 		ticks = m.ins.ld_r_n(m)
+	case 0x07:
+		ticks = m.ins.rlca(m)
 	case 0x08:
 		ticks = m.ins.ld_nn_sp(m)
 	case 0x09:
@@ -71,6 +73,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ld_A_BC(m)
 	case 0x0B:
 		ticks = m.ins.dec_rr(m)
+	case 0x0F:
+		ticks = m.ins.rrca(m)
 	case 0x12:
 		ticks = m.ins.ld_DE_A(m)
 	case 0x1A:

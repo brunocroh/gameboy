@@ -1253,6 +1253,56 @@ func (m *instructions) add_sp_e(cpu *CPU) uint32 {
 
 // ---- Rotate, shift and bit ----
 
+/*
+0x07 - RLCA: Rotate left circular (accumulator)
+
+Rotates the 8-bit A register value left in a circular manner (carry flag is updated but not used).
+Every bit is shifted to the left (e.g. bit 1 value is copied from bit 0). Bit 7 is copied both to bit
+0 and the carry flag. Note that unlike the related RLC r  instruction, RLCA always sets the zero
+flag to 0 without looking at the resulting value of the calculation.
+
+Machine Cycles: 1
+*/
+func (m *instructions) rlca(cpu *CPU) uint32 {
+	a := cpu.register.a
+
+	b7 := (a & (1 << 7)) >> 7
+
+	cpu.register.setFlag("Z", false)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", b7 != 0)
+
+	cpu.register.a = a<<1 | b7
+
+	return 1
+}
+
+/*
+0x0F - RRCA: Rotate right circular (accumulator)
+
+Rotates the 8-bit A register value right in a circular manner (carry flag is updated but not used).
+Every bit is shifted to the right (e.g. bit 1 value is copied to bit 0). Bit 0 is copied both to bit 7
+and the carry flag. Note that unlike the related RRC r  instruction, RRCA always sets the zero
+flag to 0 without looking at the resulting value of the calculation.
+
+Machine Cycles: 1
+*/
+func (m *instructions) rrca(cpu *CPU) uint32 {
+	a := cpu.register.a
+
+	b0 := (a & (1 << 0))
+
+	cpu.register.setFlag("Z", false)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", b0 != 0)
+
+	cpu.register.a = a>>1 | b0
+
+	return 1
+}
+
 // ---- FLOW ----
 
 /*
