@@ -1303,6 +1303,142 @@ func (m *instructions) rrca(cpu *CPU) uint32 {
 	return 1
 }
 
+/*
+0x17 - RLA: Rotate left (accumulator)
+
+Rotates the 8-bit A register value left through the carry flag.
+Every bit is shifted to the left (e.g. bit 1 value is copied from bit 0). The carry flag is copied to bit
+0, and bit 7 is copied to the carry flag. Note that unlike the related RL r  instruction, RLA always
+sets the zero flag to 0 without looking at the resulting value of the calculation.
+
+Machine Cycles: 1
+*/
+func (m *instructions) rla(cpu *CPU) uint32 {
+	c := uint8(0)
+	if cpu.register.getFlag("C") {
+		c = 1
+	}
+
+	a := cpu.register.a
+
+	b7 := (a & (1 << 7)) >> 7
+
+	cpu.register.setFlag("Z", false)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", b7 != 0)
+
+	cpu.register.a = a<<1 | c
+
+	return 1
+}
+
+/*
+0x1F - RRA: Rotate right (accumulator)
+
+Rotates the 8-bit A register value right through the carry flag.
+Every bit is shifted to the right (e.g. bit 1 value is copied to bit 0). The carry flag is copied to bit
+7, and bit 0 is copied to the carry flag. Note that unlike the related RR r  instruction, RRA always
+sets the zero flag to 0 without looking at the resulting value of the calculation.
+
+Machine Cycles: 1
+*/
+func (m *instructions) rra(cpu *CPU) uint32 {
+	c := uint8(0)
+	if cpu.register.getFlag("C") {
+		c = 1
+	}
+	a := cpu.register.a
+
+	b0 := (a & (1 << 0))
+
+	cpu.register.setFlag("Z", false)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", b0 != 0)
+
+	cpu.register.a = a>>1 | c
+
+	return 1
+}
+
+/*
+0xCB + 0x00 - RLC r: Rotate left circular (register)
+
+Rotates the 8-bit register r value left in a circular manner (carry flag is updated but not used).
+Every bit is shifted to the left (e.g. bit 1 value is copied from bit 0). Bit 7 is copied both to bit 0
+
+Machine Cycles: 2
+*/
+func (m *instructions) rlc_r(cpu *CPU) uint32 {
+	b := cpu.register.b
+
+	b7 := (b & (1 << 7)) >> 7
+
+	cpu.register.setFlag("Z", false)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", b7 != 0)
+
+	cpu.register.b = b<<1 | b7
+
+	return 2
+}
+
+/*
+0xCB + 0x06 - RLC (HL): Rotate left circular (indirect HL)
+
+Rotates, the 8-bit data at the absolute address specified by the 16-bit register HL, left in a
+circular manner (carry flag is updated but not used).
+Every bit is shifted to the left (e.g. bit 1 value is copied from bit 0). Bit 7 is copied both to bit 0
+and the carry flag.
+
+Machine Cycles: 4
+*/
+func (m *instructions) rlc_HL(cpu *CPU) uint32 {
+	h := cpu.register.h
+	l := cpu.register.l
+	hl := uint16(h)<<8 | uint16(l)
+
+	data := cpu.mmu.RB(hl)
+
+	b7 := (data & (1 << 7)) >> 7
+
+	cpu.register.setFlag("Z", false)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", b7 != 0)
+
+	cpu.register.b = data<<1 | b7
+
+	return 4
+}
+
+/*
+0xCB + 0x08 - RLC (HL): Rotate left circular (indirect HL)
+
+Rotates, the 8-bit data at the absolute address specified by the 16-bit register HL, left in a
+circular manner (carry flag is updated but not used).
+Every bit is shifted to the left (e.g. bit 1 value is copied from bit 0). Bit 7 is copied both to bit 0
+and the carry flag.
+
+Machine Cycles: 2
+*/
+func (m *instructions) rrc_r(cpu *CPU) uint32 {
+	b := cpu.register.b
+
+	b0 := (b & (1 << 0))
+
+	cpu.register.setFlag("Z", false)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", b0 != 0)
+
+	cpu.register.b = b>>1 | b0
+
+	return 2
+}
+
 // ---- FLOW ----
 
 /*
