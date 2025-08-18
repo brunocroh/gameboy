@@ -2,10 +2,6 @@
 
 A Game Boy emulator written in Go [Work in Progress].
 
-## Dependencies
-
-- [rgbds](https://rgbds.gbdev.io/) - Assembler/linker pkg
-
 ## Resources
 
 - [Pandocs](https://gbdev.io/pandocs/) - GB technical reference
@@ -13,3 +9,4 @@ A Game Boy emulator written in Go [Work in Progress].
 - [raphamorin/gameboy](https://github.com/raphamorim/gameboy) - Game Boy Emulator used as reference to check some implementations
 - [Game Boy: Complete Technical Reference](https://gekkio.fi/files/gb-docs/gbctr.pdf) - Very useful material to understand how the GB system works, and detailed info about cpu instructions
 - [Gbops](https://izik1.github.io/gbops/index.html) - Accurate opcode for the Game Boy
+- [rgbds](https://rgbds.gbdev.io/) - Assembler/linker pkg
