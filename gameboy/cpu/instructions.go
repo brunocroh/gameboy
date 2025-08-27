@@ -1404,7 +1404,7 @@ func (m *instructions) rlc_HL(cpu *CPU) uint32 {
 
 	b7 := (data & (1 << 7)) >> 7
 
-	cpu.register.setFlag("Z", false)
+	cpu.register.setFlag("Z", b7 == 0)
 	cpu.register.setFlag("N", false)
 	cpu.register.setFlag("H", false)
 	cpu.register.setFlag("C", b7 != 0)
@@ -1415,16 +1415,68 @@ func (m *instructions) rlc_HL(cpu *CPU) uint32 {
 }
 
 /*
-0xCB + 0x08 - RLC (HL): Rotate left circular (indirect HL)
+0xCB + 0x08 - RRC r: Rotate right circular (register)
+
+Rotates the 8-bit register r value right in a circular manner (carry flag is updated but not used).
+Every bit is shifted to the right (e.g. bit 1 value is copied to bit 0). Bit 0 is copied both to bit 7
+and the carry flag.
+
+Machine Cycles: 2
+*/
+func (m *instructions) rrc_r(cpu *CPU) uint32 {
+	b := cpu.register.b
+
+	b0 := (b & (1 << 0))
+
+	cpu.register.setFlag("Z", false)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", b0 != 0)
+
+	cpu.register.b = b>>1 | b0
+
+	return 2
+}
+
+/*
+0xCB + 0x0E - RLC (HL): Rotate left circular (indirect HL)
 
 Rotates, the 8-bit data at the absolute address specified by the 16-bit register HL, left in a
 circular manner (carry flag is updated but not used).
 Every bit is shifted to the left (e.g. bit 1 value is copied from bit 0). Bit 7 is copied both to bit 0
 and the carry flag.
 
+Machine Cycles: 4
+*/
+func (m *instructions) rrc_HL(cpu *CPU) uint32 {
+	h := cpu.register.h
+	l := cpu.register.l
+	hl := uint16(h)<<8 | uint16(l)
+
+	data := cpu.mmu.RB(hl)
+
+	b7 := (data & (1 << 7)) >> 7
+
+	cpu.register.setFlag("Z", b7 == 0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", b7 != 0)
+
+	cpu.register.b = data<<1 | b7
+
+	return 4
+}
+
+/*
+0xCB + 0x10 - RL r:  Rotate left (register)
+
+Rotates the 8-bit register r value left through the carry flag.
+Every bit is shifted to the left (e.g. bit 1 value is copied from bit 0). The carry flag is copied to bit
+0, and bit 7 is copied to the carry flag.
+
 Machine Cycles: 2
 */
-func (m *instructions) rrc_r(cpu *CPU) uint32 {
+func (m *instructions) rl_r(cpu *CPU) uint32 {
 	b := cpu.register.b
 
 	b0 := (b & (1 << 0))

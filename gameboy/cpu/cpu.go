@@ -160,6 +160,8 @@ func (m *CPU) execInstruction(opcode byte) {
 			ticks = m.ins.rlc_HL(m)
 		case 0x08:
 			ticks = m.ins.rrc_r(m)
+		case 0x0E:
+			ticks = m.ins.rrc_HL(m)
 		}
 	case 0xCE:
 		ticks = m.ins.adc_n(m)
