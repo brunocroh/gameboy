@@ -1478,9 +1478,13 @@ Machine Cycles: 2
 */
 func (m *instructions) rl_r(cpu *CPU) uint32 {
 	b := cpu.register.b
-	c := cpu.register.b
+	c := uint8(0)
 
-	b7 := (b & (1 << 7)) << 7
+	if cpu.register.getFlag("C") {
+		c = 1
+	}
+
+	b7 := b & (1 << 7)
 	cpu.register.b = b<<1 | c
 
 	cpu.register.setFlag("Z", cpu.register.b == 0)
@@ -1489,6 +1493,42 @@ func (m *instructions) rl_r(cpu *CPU) uint32 {
 	cpu.register.setFlag("C", b7 != 0)
 
 	return 2
+}
+
+/*
+0xCB + 0x16 - RL (HL): Rotate left (indirect HL)
+
+Rotates, the 8-bit data at the absolute address specified by the 16-bit register HL, left through
+the carry flag.
+Every bit is shifted to the left (e.g. bit 1 value is copied from bit 0). The carry flag is copied to bit
+0, and bit 7 is copied to the carry flag.
+
+Machine Cycles: 4
+*/
+func (m *instructions) rl_HL(cpu *CPU) uint32 {
+	h := cpu.register.h
+	l := cpu.register.l
+	hl := uint16(h)<<7 | uint16(l)
+
+	c := uint8(0)
+	if cpu.register.getFlag("C") {
+		c = 1
+	}
+
+	data := cpu.mmu.RB(hl)
+
+	b7 := data & (1 << 7)
+
+	result := data<<1 | (c >> 7)
+
+	cpu.register.setFlag("Z", result == 0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", b7 != 0)
+
+	cpu.mmu.WB(hl, result)
+
+	return 4
 }
 
 // ---- FLOW ----
