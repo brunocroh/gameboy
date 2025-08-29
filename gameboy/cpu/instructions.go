@@ -1426,7 +1426,7 @@ Machine Cycles: 2
 func (m *instructions) rrc_r(cpu *CPU) uint32 {
 	b := cpu.register.b
 
-	b0 := (b & (1 << 0))
+	b0 := (b & (0x01 << 0))
 
 	cpu.register.setFlag("Z", false)
 	cpu.register.setFlag("N", false)
@@ -1455,14 +1455,14 @@ func (m *instructions) rrc_HL(cpu *CPU) uint32 {
 
 	data := cpu.mmu.RB(hl)
 
-	b7 := (data & (1 << 7)) >> 7
+	b0 := (data & (1 << 0)) << 7
 
-	cpu.register.setFlag("Z", b7 == 0)
+	cpu.register.setFlag("Z", b0 == 0)
 	cpu.register.setFlag("N", false)
 	cpu.register.setFlag("H", false)
-	cpu.register.setFlag("C", b7 != 0)
+	cpu.register.setFlag("C", b0 != 0)
 
-	cpu.register.b = data<<1 | b7
+	cpu.register.b = data>>1 | b0
 
 	return 4
 }
@@ -1478,15 +1478,15 @@ Machine Cycles: 2
 */
 func (m *instructions) rl_r(cpu *CPU) uint32 {
 	b := cpu.register.b
+	c := cpu.register.b
 
-	b0 := (b & (1 << 0))
+	b7 := (b & (1 << 7)) << 7
+	cpu.register.b = b<<1 | c
 
-	cpu.register.setFlag("Z", false)
+	cpu.register.setFlag("Z", cpu.register.b == 0)
 	cpu.register.setFlag("N", false)
 	cpu.register.setFlag("H", false)
-	cpu.register.setFlag("C", b0 != 0)
-
-	cpu.register.b = b>>1 | b0
+	cpu.register.setFlag("C", b7 != 0)
 
 	return 2
 }
