@@ -1531,6 +1531,284 @@ func (m *instructions) rl_HL(cpu *CPU) uint32 {
 	return 4
 }
 
+/*
+0xCB + 0x18 - RR r: Rotate right (register)
+
+Rotates the 8-bit register r value right through the carry flag.
+Every bit is shifted to the right (e.g. bit 1 value is copied to bit 0). The carry flag is copied to bit
+7, and bit 0 is copied to the carry flag.
+
+Machine Cycles: 2
+*/
+func (m *instructions) rr_r(cpu *CPU) uint32 {
+	b := cpu.register.b
+	c := uint8(0)
+
+	if cpu.register.getFlag("c") {
+		c = 1
+	}
+
+	b0 := b & (1 << 0)
+
+	result := b>>1 | (c << 7)
+
+	cpu.register.setFlag("Z", result == 0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", b0 != 0)
+
+	cpu.register.b = result
+
+	return 2
+}
+
+/*
+0xCB + 0x1E - RR (HL): Rotate right (indirect HL)
+
+Rotates, the 8-bit data at the absolute address specified by the 16-bit register HL, right through
+the carry flag.
+Every bit is shifted to the right (e.g. bit 1 value is copied to bit 0). The carry flag is copied to bit
+7, and bit 0 is copied to the carry flag.
+
+Machine Cycles: 4
+*/
+func (m *instructions) rr_HL(cpu *CPU) uint32 {
+	h := cpu.register.h
+	l := cpu.register.l
+	hl := uint16(h)<<8 | uint16(l)
+	data := cpu.mmu.RB(hl)
+
+	c := uint8(0)
+	if cpu.register.getFlag("c") {
+		c = 1
+	}
+
+	b0 := data & (1 << 0)
+
+	result := data>>1 | c<<7
+
+	cpu.register.setFlag("Z", result == 0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", b0 != 0)
+
+	cpu.mmu.WB(hl, result)
+
+	return 4
+}
+
+/*
+0xCB + 0x20 - SLA r: Shift left arithmetic (register)
+
+Shifts the 8-bit register r value left by one bit using an arithmetic shift.
+Bit 7 is shifted to the carry flag, and bit 0 is set to a fixed value of 0.
+
+Machine Cycles: 2
+*/
+func (m *instructions) sla_r(cpu *CPU) uint32 {
+	b := cpu.register.b
+
+	b7 := b & (1 << 7)
+
+	result := b << 1
+
+	cpu.register.setFlag("Z", result == 0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", b7 != 0)
+
+	cpu.register.b = result
+
+	return 2
+}
+
+/*
+0xCB + 0x26 - SLA (HL): Shift left arithmetic (indirect HL)
+
+Shifts, the 8-bit value at the address specified by the HL register, left by one bit using an
+arithmetic shift.
+Bit 7 is shifted to the carry flag, and bit 0 is set to a fixed value of 0.
+
+Machine Cycles: 4
+*/
+func (m *instructions) sla_HL(cpu *CPU) uint32 {
+	h := cpu.register.h
+	l := cpu.register.l
+	hl := uint16(h)<<7 | uint16(l)
+
+	data := cpu.mmu.RB(hl)
+
+	b7 := data & (1 << 7)
+	result := data << 1
+
+	cpu.register.setFlag("Z", result == 0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", b7 != 0)
+
+	cpu.mmu.WB(hl, result)
+
+	return 4
+}
+
+/*
+0xCB + 0x28 - SRA r: Shift right arithmetic (register)
+
+Shifts the 8-bit register r value right by one bit using an arithmetic shift.
+Bit 7 retains its value, and bit 0 is shifted to the carry flag.
+
+Machine Cycles: 2
+*/
+func (m *instructions) sra_r(cpu *CPU) uint32 {
+	b := cpu.register.b
+
+	msb := b & (1 << 7)
+	lsb := b & (1 << 0)
+
+	result := b>>1 | msb
+
+	cpu.register.setFlag("Z", result == 0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", lsb != 0)
+
+	cpu.register.b = result
+
+	return 2
+}
+
+/*
+0xCB + 0x2E - SRA (HL): Shift right arithmetic (indirect HL)
+
+Shifts, the 8-bit value at the address specified by the HL register, right by one bit using an
+arithmetic shift.
+Bit 7 is set to a fixed value of 0, and bit 0 is shifted to the carry flag.
+
+Machine Cycles: 4
+*/
+func (m *instructions) sra_HL(cpu *CPU) uint32 {
+	h := cpu.register.h
+	l := cpu.register.l
+	hl := uint16(h)<<7 | uint16(l)
+
+	data := cpu.mmu.RB(hl)
+
+	lsb := data & (1 << 0)
+
+	result := data >> 1
+
+	cpu.register.setFlag("Z", result == 0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", lsb != 0)
+
+	cpu.register.b = result
+
+	return 4
+}
+
+/*
+0xCB + 0x30 - SWAP r: Swap nibbles (register)
+
+Swaps the high and low 4-bit nibbles of the 8-bit register r.
+
+Machine Cycles: 2
+*/
+func (m *instructions) swap_r(cpu *CPU) uint32 {
+	b := cpu.register.b
+
+	result := b>>4 | b<<4
+
+	cpu.register.setFlag("Z", result == 0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", false)
+
+	cpu.register.b = result
+
+	return 2
+}
+
+/*
+0xCB + 0x36 - SWAP (HL): Swap nibbles (indirect HL)
+
+Swaps the high and low 4-bit nibbles of the 8-bit data at the absolute address specified by the
+16-bit register HL.
+
+Machine Cycles: 4
+*/
+func (m *instructions) swap_HL(cpu *CPU) uint32 {
+	h := cpu.register.h
+	l := cpu.register.l
+	hl := uint16(h)<<7 | uint16(l)
+
+	data := cpu.mmu.RB(hl)
+
+	result := data>>4 | data<<4
+
+	cpu.register.setFlag("Z", result == 0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", false)
+
+	cpu.mmu.WB(hl, result)
+
+	return 4
+}
+
+/*
+0xCB + 0x28 - SRL r: Shift right logical (register)
+
+Shifts the 8-bit register r value right by one bit using a logical shift.
+Bit 7 is set to a fixed value of 0, and bit 0 is shifted to the carry flag.
+
+Machine Cycles: 2
+*/
+func (m *instructions) srl_r(cpu *CPU) uint32 {
+	b := cpu.register.b
+
+	lsb := b & (1 << 0)
+	result := b >> 1
+
+	cpu.register.setFlag("Z", result == 0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", lsb != 0)
+
+	cpu.register.b = result
+
+	return 2
+}
+
+/*
+0xCB + 0x3E - SRL (HL): Shift right logical (indirect HL)
+
+Shifts, the 8-bit value at the address specified by the HL register, right by one bit using a logical
+shift.
+Bit 7 is set to a fixed value of 0, and bit 0 is shifted to the carry flag.
+
+Machine Cycles: 4
+*/
+func (m *instructions) srl_HL(cpu *CPU) uint32 {
+	h := cpu.register.h
+	l := cpu.register.l
+	hl := uint16(h)<<7 | uint16(l)
+
+	data := cpu.mmu.RB(hl)
+
+	lsb := data & (1 << 0)
+	result := data >> 1
+
+	cpu.register.setFlag("Z", result == 0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", false)
+	cpu.register.setFlag("C", lsb != 0)
+
+	cpu.mmu.WB(hl, result)
+
+	return 4
+}
+
 // ---- FLOW ----
 
 /*
