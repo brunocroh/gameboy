@@ -171,7 +171,7 @@ func (m *CPU) execInstruction(opcode byte) {
 		case 0x1E:
 			ticks = m.ins.rr_HL(m)
 		case 0x20:
-			ticks = m.ins.sla_r(m)
+			ticks = m.ins.sla_r(m, &m.register.b)
 		case 0x26:
 			ticks = m.ins.sla_HL(m)
 		case 0x28:

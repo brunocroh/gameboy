@@ -1605,19 +1605,19 @@ Bit 7 is shifted to the carry flag, and bit 0 is set to a fixed value of 0.
 
 Machine Cycles: 2
 */
-func (m *instructions) sla_r(cpu *CPU) uint32 {
-	b := cpu.register.b
+func (m *instructions) sla_r(cpu *CPU, register *uint8) uint32 {
+	r := *register
 
-	b7 := b & (1 << 7)
+	b7 := r & (1 << 7)
 
-	result := b << 1
+	result := r << 1
 
 	cpu.register.setFlag("Z", result == 0)
 	cpu.register.setFlag("N", false)
 	cpu.register.setFlag("H", false)
 	cpu.register.setFlag("C", b7 != 0)
 
-	cpu.register.b = result
+	*register = result
 
 	return 2
 }
