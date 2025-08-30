@@ -184,7 +184,6 @@ func (m *CPU) execInstruction(opcode byte) {
 			ticks = m.ins.srl_r(m)
 		case 0x3E:
 			ticks = m.ins.srl_HL(m)
-
 		}
 	case 0xCE:
 		ticks = m.ins.adc_n(m)
@@ -225,6 +224,34 @@ func (m *CPU) execInstruction(opcode byte) {
 	if ticks != 0 {
 		m.doCycle(ticks)
 	}
+}
+
+func getRegister(m *CPU, opcode byte) *uint8 {
+	switch opcode & 0x0F {
+	case 0x00:
+	case 0x08:
+		return &m.register.b
+	case 0x01:
+	case 0x09:
+		return &m.register.c
+	case 0x02:
+	case 0x0A:
+		return &m.register.d
+	case 0x03:
+	case 0x0B:
+		return &m.register.e
+	case 0x04:
+	case 0x0C:
+		return &m.register.h
+	case 0x05:
+	case 0x0D:
+		return &m.register.l
+	case 0x07:
+	case 0x0F:
+		return &m.register.a
+	}
+
+	return nil
 }
 
 func (m *CPU) rw(addr uint16) uint16 {
