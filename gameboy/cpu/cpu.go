@@ -153,37 +153,66 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.add_n(m)
 	case 0xCB:
 		op := m.fetchOpcode()
-		switch op {
+		switch op & 0xF0 {
 		case 0x00:
-			ticks = m.ins.rlc_r(m)
-		case 0x06:
-			ticks = m.ins.rlc_HL(m)
-		case 0x08:
-			ticks = m.ins.rrc_r(m)
-		case 0x0E:
-			ticks = m.ins.rrc_HL(m)
+			if op < 0x08 {
+				if op == 0x06 {
+					ticks = m.ins.rlc_HL(m)
+				} else {
+					ticks = m.ins.rlc_r(m, getRegister(m, op))
+				}
+			} else {
+				if op == 0x0E {
+					ticks = m.ins.rrc_HL(m)
+				} else {
+					ticks = m.ins.rrc_r(m, getRegister(m, op))
+				}
+			}
 		case 0x10:
-			ticks = m.ins.rl_r(m)
-		case 0x16:
-			ticks = m.ins.rl_HL(m)
-		case 0x18:
-			ticks = m.ins.rr_r(m)
-		case 0x1E:
-			ticks = m.ins.rr_HL(m)
+			if op < 0x18 {
+				if op == 0x16 {
+					ticks = m.ins.rl_HL(m)
+				} else {
+					ticks = m.ins.rl_r(m, getRegister(m, op))
+				}
+			} else {
+				if op == 0x1E {
+
+					ticks = m.ins.rr_HL(m)
+				} else {
+
+					ticks = m.ins.rr_r(m, getRegister(m, op))
+				}
+			}
 		case 0x20:
-			ticks = m.ins.sla_r(m, &m.register.b)
-		case 0x26:
-			ticks = m.ins.sla_HL(m)
-		case 0x28:
-			ticks = m.ins.sra_r(m)
-		case 0x2E:
-			ticks = m.ins.sra_HL(m)
+			if op < 0x28 {
+				if op == 0x26 {
+					ticks = m.ins.sla_HL(m)
+				} else {
+					ticks = m.ins.sla_r(m, getRegister(m, op))
+				}
+			} else {
+				if op == 0x2E {
+					ticks = m.ins.sra_HL(m)
+				} else {
+					ticks = m.ins.sra_r(m, getRegister(m, op))
+				}
+			}
 		case 0x30:
-			ticks = m.ins.swap_r(m)
-		case 0x38:
-			ticks = m.ins.srl_r(m)
-		case 0x3E:
-			ticks = m.ins.srl_HL(m)
+			if op < 0x28 {
+				if op == 0x26 {
+					ticks = m.ins.swap_HL(m)
+				} else {
+					ticks = m.ins.swap_r(m, getRegister(m, op))
+				}
+			} else {
+
+				if op == 0x3E {
+					ticks = m.ins.srl_HL(m)
+				} else {
+					ticks = m.ins.srl_r(m, getRegister(m, op))
+				}
+			}
 		}
 	case 0xCE:
 		ticks = m.ins.adc_n(m)
