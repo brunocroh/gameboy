@@ -219,6 +219,12 @@ func (m *CPU) execInstruction(opcode byte) {
 			} else {
 				ticks = m.ins.bit_b_r(m, getRegister(m, op))
 			}
+		case 0x80:
+			if op == 0x86 {
+				ticks = m.ins.res_b_HL(m)
+			} else {
+				ticks = m.ins.res_b_r(m, getRegister(m, op))
+			}
 		}
 	case 0xCE:
 		ticks = m.ins.adc_n(m)
