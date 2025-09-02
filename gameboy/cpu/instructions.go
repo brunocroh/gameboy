@@ -1759,7 +1759,7 @@ func (m *instructions) swap_HL(cpu *CPU) uint32 {
 }
 
 /*
-0xCB + 0x28 - SRL r: Shift right logical (register)
+0xCB + 0x38 - SRL r: Shift right logical (register)
 
 Shifts the 8-bit register r value right by one bit using a logical shift.
 Bit 7 is set to a fixed value of 0, and bit 0 is shifted to the carry flag.
@@ -1812,32 +1812,47 @@ func (m *instructions) srl_HL(cpu *CPU) uint32 {
 }
 
 /*
-0xCB + 0x3E - SRL (HL): Shift right logical (indirect HL)
+0xCB + 0x40 - BIT b, r: Test bit (register)
 
-Shifts, the 8-bit value at the address specified by the HL register, right by one bit using a logical
-shift.
-Bit 7 is set to a fixed value of 0, and bit 0 is shifted to the carry flag.
+Tests the bit b of the 8-bit register r.
+The zero flag is set to 1 if the chosen bit is 0, and 0 otherwise.
 
-Machine Cycles: 4
+Machine Cycles: 2
 */
-func (m *instructions) srl_HL(cpu *CPU) uint32 {
+func (m *instructions) bit_b_r(cpu *CPU, register *uint8) uint32 {
+	r := *register
+
+	b0 := r << (1 << 0)
+
+	cpu.register.setFlag("Z", b0 == 0)
+	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("H", true)
+
+	return 2
+}
+
+/*
+0xCB + 0x46 - BIT b, (HL): Test bit (indirect HL)
+
+Tests the bit b of the 8-bit data at the absolute address specified by the 16-bit register HL.
+The zero flag is set to 1 if the chosen bit is 0, and 0 otherwise.
+
+Machine Cycles: 3
+*/
+func (m *instructions) bit_b_HL(cpu *CPU) uint32 {
 	h := cpu.register.h
 	l := cpu.register.l
 	hl := uint16(h)<<7 | uint16(l)
 
 	data := cpu.mmu.RB(hl)
 
-	lsb := data & (1 << 0)
-	result := data >> 1
+	b0 := data << (1 << 0)
 
-	cpu.register.setFlag("Z", result == 0)
+	cpu.register.setFlag("Z", b0 == 0)
 	cpu.register.setFlag("N", false)
-	cpu.register.setFlag("H", false)
-	cpu.register.setFlag("C", lsb != 0)
+	cpu.register.setFlag("H", true)
 
-	cpu.mmu.WB(hl, result)
-
-	return 4
+	return 3
 }
 
 // ---- FLOW ----

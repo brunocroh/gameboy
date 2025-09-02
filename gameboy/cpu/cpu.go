@@ -199,8 +199,8 @@ func (m *CPU) execInstruction(opcode byte) {
 				}
 			}
 		case 0x30:
-			if op < 0x28 {
-				if op == 0x26 {
+			if op < 0x38 {
+				if op == 0x36 {
 					ticks = m.ins.swap_HL(m)
 				} else {
 					ticks = m.ins.swap_r(m, getRegister(m, op))
@@ -212,6 +212,12 @@ func (m *CPU) execInstruction(opcode byte) {
 				} else {
 					ticks = m.ins.srl_r(m, getRegister(m, op))
 				}
+			}
+		case 0x40:
+			if op == 0x46 {
+				ticks = m.ins.bit_b_HL(m)
+			} else {
+				ticks = m.ins.bit_b_r(m, getRegister(m, op))
 			}
 		}
 	case 0xCE:
