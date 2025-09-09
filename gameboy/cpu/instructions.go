@@ -2157,4 +2157,16 @@ func (m *instructions) rst_n(cpu *CPU) uint32 {
 	return 4
 }
 
+/*
+0x00 - NOP: No operation
+
+No operation. This instruction doesn’t do anything, but can be used to add a delay of one
+machine cycle and increment PC by one.
+
+Machine Cycles: 1
+*/
+func (m *instructions) nop() uint32 {
+	return 1
+}
+
 // ---- MISC ----

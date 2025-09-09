@@ -51,6 +51,8 @@ func (m *CPU) fetchOpcode() byte {
 func (m *CPU) execInstruction(opcode byte) {
 	var ticks uint32 = 1
 	switch opcode {
+	case 0x00:
+		ticks = m.ins.nop()
 	case 0x01:
 		ticks = m.ins.ld_rr_nn(m)
 	case 0x02:
