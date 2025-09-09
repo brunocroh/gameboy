@@ -1891,6 +1891,42 @@ func (m *instructions) res_b_HL(cpu *CPU) uint32 {
 	return 4
 }
 
+/*
+0xCB + 0xC0 - SET b, r: Set bit (register)
+
+Sets the bit b of the 8-bit register r to 1.
+
+Machine Cycles: 2
+*/
+func (m *instructions) set_b_r(cpu *CPU, register *uint8) uint32 {
+	r := *register
+
+	*register = r << 1
+
+	return 2
+}
+
+/*
+0xCB + 0xC6 - SET b, (HL): Set bit (indirect HL)
+
+Sets the bit b of the 8-bit data at the absolute address specified by the 16-bit register HL, to 1.
+
+Machine Cycles: 4
+*/
+func (m *instructions) set_b_HL(cpu *CPU) uint32 {
+	h := cpu.register.h
+	l := cpu.register.l
+	hl := uint16(h)<<7 | uint16(l)
+
+	data := cpu.mmu.RB(hl)
+
+	result := data << 1
+
+	cpu.mmu.WB(hl, result)
+
+	return 4
+}
+
 // ---- FLOW ----
 
 /*
