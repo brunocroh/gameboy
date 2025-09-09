@@ -79,10 +79,14 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ld_DE_A(m)
 	case 0x17:
 		ticks = m.ins.rla(m)
+	case 0x18:
+		ticks = m.ins.jr_e(m)
 	case 0x1A:
 		ticks = m.ins.ld_A_DE(m)
 	case 0x1F:
 		ticks = m.ins.rra(m)
+	case 0x20:
+		ticks = m.ins.jr_cc(m)
 	case 0x22:
 		ticks = m.ins.ld_HLi_A(m)
 	case 0x27:
@@ -143,14 +147,22 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.cp_r(m)
 	case 0xBE:
 		ticks = m.ins.cp_HL(m)
+	case 0xC0:
+		ticks = m.ins.ret_cc(m)
 	case 0xC1:
 		ticks = m.ins.ld_pop_rr(m)
+	case 0xC2:
+		ticks = m.ins.jp_cc_nn(m)
 	case 0xC3:
 		ticks = m.ins.jp_nn(m)
+	case 0xC4:
+		ticks = m.ins.call_cc_nn(m)
 	case 0xC5:
 		ticks = m.ins.ld_push_rr(m)
 	case 0xC6:
 		ticks = m.ins.add_n(m)
+	case 0xC9:
+		ticks = m.ins.ret(m)
 	case 0xCB:
 		op := m.fetchOpcode()
 		switch op & 0xF0 {
@@ -232,12 +244,16 @@ func (m *CPU) execInstruction(opcode byte) {
 				ticks = m.ins.set_b_r(m, getRegister(m, op))
 			}
 		}
+	case 0xCD:
+		ticks = m.ins.call_nn(m)
 	case 0xCE:
 		ticks = m.ins.adc_n(m)
 	case 0xD6:
 		ticks = m.ins.sub_n(m)
 	case 0xDE:
 		ticks = m.ins.sbc_n(m)
+	case 0xDF:
+		ticks = m.ins.rst_n(m)
 	case 0xE0:
 		ticks = m.ins.ldh_n_A(m)
 	case 0xE2:
@@ -250,6 +266,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ld_nn_A(m)
 	case 0xEE:
 		ticks = m.ins.xor_n(m)
+	case 0xE9:
+		ticks = m.ins.jp_HL(m)
 	case 0xF0:
 		ticks = m.ins.ldh_A_n(m)
 	case 0xF2:

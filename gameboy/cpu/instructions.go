@@ -1941,4 +1941,220 @@ func (m *instructions) jp_nn(cpu *CPU) uint32 {
 	return 4
 }
 
+/*
+0xE9 - JP HL: Jump to HL
+
+Unconditional jump to the absolute address specified by the 16-bit register HL.
+
+Machine Cycles: 1
+*/
+func (m *instructions) jp_HL(cpu *CPU) uint32 {
+	h := cpu.register.h
+	l := cpu.register.l
+	hl := uint16(h)<<7 | uint16(l)
+	cpu.PC = hl
+	return 1
+}
+
+/*
+0xC2 - JP cc, nn: Jump (conditional)
+
+Conditional jump to the absolute address specified by the 16-bit operand nn, depending on the
+condition cc.
+
+Note that the operand (absolute address) is read even when the condition is false!
+
+Machine Cycles: 4 cc = true
+Machine Cycles: 3 cc = false
+*/
+func (m *instructions) jp_cc_nn(cpu *CPU) uint32 {
+	lsb := cpu.mmu.RB(cpu.popPC())
+	msb := cpu.mmu.RB(cpu.popPC())
+
+	nn := uint16(msb)<<7 | uint16(lsb)
+
+	if cpu.register.getFlag("Z") {
+		cpu.PC = nn
+		return 4
+	}
+
+	return 3
+}
+
+/*
+0x18 - JR e: Relative jump
+
+Unconditional jump to the relative address specified by the signed 8-bit operand e.
+
+Machine Cycles: 3
+*/
+func (m *instructions) jr_e(cpu *CPU) uint32 {
+	e := cpu.mmu.RB(cpu.popPC())
+
+	cpu.PC = cpu.PC + uint16(e)
+
+	return 3
+}
+
+/*
+0x20 - JR cc, e: Relative jump (conditional)
+
+Conditional jump to the relative address specified by the signed 8-bit operand e, depending on
+the condition cc.
+Note that the operand (relative address offset) is read even when the condition is false!
+
+Machine Cycles: 3 cc = true
+Machine Cycles: 2 cc = false
+*/
+func (m *instructions) jr_cc(cpu *CPU) uint32 {
+	e := cpu.mmu.RB(cpu.popPC())
+
+	if cpu.register.getFlag("Z") {
+		cpu.PC = cpu.PC + uint16(e)
+		return 3
+	}
+
+	return 2
+}
+
+/*
+0xCD - CALL nn: Call function
+
+Unconditional function call to the absolute address specified by the 16-bit operand nn.
+
+Machine Cycles: 6
+*/
+func (m *instructions) call_nn(cpu *CPU) uint32 {
+	lsb := cpu.mmu.RB(cpu.popPC())
+	msb := cpu.mmu.RB(cpu.popPC())
+
+	nn := uint16(msb) | uint16(lsb)
+
+	cpu.SP -= 1
+	cpu.mmu.WB(cpu.SP, msb)
+
+	cpu.SP -= 1
+	cpu.mmu.WB(cpu.SP, lsb)
+
+	cpu.PC = nn
+
+	return 6
+}
+
+/*
+0xC4 - CALL cc, nn: Call function (conditional)
+
+Conditional function call to the absolute address specified by the 16-bit operand nn, depending
+on the condition cc.
+Note that the operand (absolute address) is read even when the condition is false!
+
+Machine Cycles: 6 cc = true
+Machine Cycles: 3 cc = false
+*/
+func (m *instructions) call_cc_nn(cpu *CPU) uint32 {
+	lsb := cpu.mmu.RB(cpu.popPC())
+	msb := cpu.mmu.RB(cpu.popPC())
+
+	nn := uint16(msb) | uint16(lsb)
+
+	if cpu.register.getFlag("Z") {
+
+		cpu.SP -= 1
+		cpu.mmu.WB(cpu.SP, msb)
+
+		cpu.SP -= 1
+		cpu.mmu.WB(cpu.SP, lsb)
+
+		cpu.PC = nn
+		return 6
+	}
+
+	return 3
+}
+
+/*
+0xC9 - RET: Return from function
+
+# Unconditional return from a function
+
+Machine Cycles: 4
+*/
+func (m *instructions) ret(cpu *CPU) uint32 {
+	lsb := cpu.mmu.RB(cpu.SP)
+	cpu.SP += 1
+	msb := cpu.mmu.RB(cpu.SP)
+	cpu.SP += 1
+
+	cpu.PC = uint16(msb)<<7 | uint16(lsb)
+
+	return 4
+}
+
+/*
+0xC0 - RET cc: Return from function (conditional)
+
+Conditional return from a function, depending on the condition cc.
+
+Machine Cycles: 5 cc = true
+Machine Cycles: 2 cc = false
+*/
+func (m *instructions) ret_cc(cpu *CPU) uint32 {
+	if cpu.register.getFlag("Z") {
+		lsb := cpu.mmu.RB(cpu.SP)
+		cpu.SP += 1
+		msb := cpu.mmu.RB(cpu.SP)
+		cpu.SP += 1
+
+		cpu.PC = uint16(msb)<<7 | uint16(lsb)
+
+		return 5
+
+	}
+
+	return 2
+}
+
+/*
+0xD9 - RETI: Return from interrupt handler
+
+Unconditional return from a function. Also enables interrupts by setting IME=1.
+
+Machine Cycles: 4
+*/
+func (m *instructions) reti(cpu *CPU) uint32 {
+	lsb := cpu.mmu.RB(cpu.SP)
+	cpu.SP += 1
+	msb := cpu.mmu.RB(cpu.SP)
+	cpu.SP += 1
+
+	cpu.PC = uint16(msb)<<7 | uint16(lsb)
+	// TODO: create IME
+	//set IME =1
+
+	return 4
+}
+
+/*
+0xDF - RST n: Restart / Call function (implied)
+
+Unconditional function call to the absolute fixed address defined by the opcode.
+
+Machine Cycles: 4
+*/
+func (m *instructions) rst_n(cpu *CPU) uint32 {
+	msb := uint8(cpu.PC)
+	lsb := uint8(cpu.PC >> 7)
+	n := uint8(0x18)
+	cpu.SP -= 1
+	cpu.mmu.WB(cpu.SP, msb)
+	cpu.SP -= 1
+	cpu.mmu.WB(cpu.SP, lsb)
+
+	result := uint16(msb)<<7 | uint16(n)
+
+	cpu.PC = result
+
+	return 4
+}
+
 // ---- MISC ----
