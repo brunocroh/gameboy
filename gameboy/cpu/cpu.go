@@ -11,6 +11,7 @@ type CPU struct {
 
 	ins      *instructions
 	register *register
+	interupt *interupt
 
 	PC uint16
 	SP uint16
@@ -19,10 +20,12 @@ type CPU struct {
 func New(mmu *mmu.MemoryManagementUnit) *CPU {
 	i := instructionsNew()
 	r := registerNew()
+	interupt := interuptNew()
 	return &CPU{
 		mmu:      mmu,
 		ins:      i,
 		register: r,
+		interupt: interupt,
 	}
 }
 
@@ -30,6 +33,7 @@ func (m *CPU) Init() {
 	m.PC = 0x0100
 	m.SP = 0xFFFE
 	m.register.Init()
+	m.interupt.Init()
 }
 
 func (m *CPU) Cycle() {
