@@ -7,8 +7,9 @@ import (
 
 const BOOTROM_SIZE = 256
 
+const ROM_START = 0x0100
 const HRAM_START = 0xFF80
-const HRAM_END = 0xFFE
+const HRAM_END = 0xFFFE
 
 var BOOTROM = [BOOTROM_SIZE]byte{
 	0x31, 0xfe, 0xff, 0xaf, 0x21, 0xff, 0x9f, 0x32, 0xcb, 0x7c, 0x20, 0xfb,
@@ -62,10 +63,12 @@ func New() *MemoryManagementUnit {
 	return &MemoryManagementUnit{}
 }
 
-func (m *MemoryManagementUnit) Init() {
+func (m *MemoryManagementUnit) Init(rom []byte) {
 	m.hram = BOOTROM
-	m.wram[0x0100] = 0x31
-	m.wram[0x0101] = 0xFE
+
+	for i, v := range rom {
+		m.vram[ROM_START+i] = v
+	}
 }
 
 func (m *MemoryManagementUnit) RB(address uint16) byte {

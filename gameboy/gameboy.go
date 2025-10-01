@@ -2,6 +2,7 @@ package gameboy
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/brunocroh/gameboy/gameboy/cpu"
 	"github.com/brunocroh/gameboy/gameboy/mmu"
@@ -18,7 +19,6 @@ func New() *GameBoy {
 
 func (m *GameBoy) Init() {
 	m.mmu = mmu.New()
-	m.mmu.Init()
 	m.cpu = cpu.New(m.mmu)
 	m.cpu.Init()
 }
@@ -31,4 +31,14 @@ func (m *GameBoy) Debug() {
 	fmt.Println("======== DEBUG =========")
 	fmt.Println(m.mmu.Dump())
 	fmt.Println("========================")
+}
+
+func LoadROM(filePath string) ([]byte, error) {
+	data, err := os.ReadFile(filePath)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }

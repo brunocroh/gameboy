@@ -20,7 +20,7 @@ type CPU struct {
 func New(mmu *mmu.MemoryManagementUnit) *CPU {
 	i := instructionsNew()
 	r := registerNew()
-	interupt := interuptNew()
+	interupt := interuptNew(mmu)
 	return &CPU{
 		mmu:      mmu,
 		ins:      i,
@@ -33,13 +33,18 @@ func (m *CPU) Init() {
 	m.PC = 0x0100
 	m.SP = 0xFFFE
 	m.register.Init()
+	m.mmu.Init()
 	m.interupt.Init()
 }
 
 func (m *CPU) Cycle() {
 	opcode := m.fetchOpcode()
+	dd := m.mmu.RB(0x0100)
+	fmt.Printf("PC: 0x%x, OPCODE: 0x%x, DD: 0x%x\n", m.PC, opcode, dd)
+
 	m.doCycle(1)
 	m.execInstruction(opcode)
+	m.interupt.HandleInterupt()
 }
 
 func (m *CPU) popPC() uint16 {
@@ -101,6 +106,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ld_A_HLi(m)
 	case 0x2F:
 		ticks = m.ins.cpl(m)
+	case 0x31:
+		ticks = m.ins.ld_SP_nn(m)
 	case 0x32:
 		ticks = m.ins.ld_HLd_A(m)
 	case 0x34:
@@ -224,7 +231,6 @@ func (m *CPU) execInstruction(opcode byte) {
 					ticks = m.ins.swap_r(m, getRegister(m, op))
 				}
 			} else {
-
 				if op == 0x3E {
 					ticks = m.ins.srl_HL(m)
 				} else {

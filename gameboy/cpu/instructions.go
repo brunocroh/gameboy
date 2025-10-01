@@ -315,6 +315,17 @@ func (m *instructions) ld_nn_sp(cpu *CPU) uint32 {
 }
 
 /*
+0x08 - LD (SP), nn: Copy the value n16 into register SP.
+
+Machine Cycles: 3
+*/
+func (m *instructions) ld_SP_nn(cpu *CPU) uint32 {
+	nn := cpu.mmu.RW(cpu.popPC())
+	cpu.SP = nn
+	return 3
+}
+
+/*
 0xF9 - Load stack pointer from HL
 
 Load to the 16-bit SP register, data from the 16-bit HL register.

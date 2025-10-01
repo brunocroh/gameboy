@@ -13,8 +13,9 @@ func main() {
 	gb.Init()
 	gb.Debug()
 
-	gb.Update()
-	gb.Update()
+	for i := 0; i < 10; i++ {
+		gb.Update()
+	}
 
-	// gb.Debug()
+	gb.Debug()
 }
