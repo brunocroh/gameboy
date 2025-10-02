@@ -8,12 +8,14 @@ const (
 )
 
 type Timer struct {
-	divider byte
-	counter byte
-	modulo  byte
-	control byte
-	step    byte
-	enabled bool
+	divider         byte
+	internalDivider uint32
+	counter         byte
+	internalCounter uint32
+	modulo          byte
+	step            uint32
+	enabled         bool
+	Interrupt       byte
 }
 
 func TimerNew() *Timer {
@@ -23,9 +25,12 @@ func TimerNew() *Timer {
 func (m *Timer) Init() {
 	m.enabled = true
 	m.divider = 0
+	m.internalDivider = 0
 	m.counter = 0
+	m.internalCounter = 0
 	m.modulo = 0
-	m.control = 0
+	m.step = 256
+	m.Interrupt = 0
 }
 
 func IsTimerAddress(address uint16) bool {
@@ -44,7 +49,27 @@ func (m *Timer) Read(address uint16) byte {
 	case TMA:
 		return m.modulo
 	default:
-		return m.modulo //TODO update to control
+		var stepCount = byte(0)
+
+		switch m.step {
+		case 16:
+			stepCount = 1
+			break
+		case 64:
+			stepCount = 2
+			break
+		case 256:
+			stepCount = 3
+			break
+		default:
+			stepCount = byte(0)
+		}
+
+		if m.enabled {
+			return 0xF8 | 0x4 | stepCount
+		} else {
+			return 0xF8 | 0 | stepCount
+		}
 	}
 }
 
@@ -58,23 +83,42 @@ func (m *Timer) Write(address uint16, v byte) {
 		break
 	case TMA:
 		m.modulo = v
-	default:
+	case TAC:
 		m.enabled = (v & 0x4) != 0
-
+		switch v & 0x3 {
+		case 1:
+			m.step = 16
+			break
+		case 2:
+			m.step = 64
+			break
+		case 3:
+			m.step = 256
+			break
+		default:
+			m.step = 1024
+		}
 	}
 }
 
 func (m *Timer) DoCycle(ticks uint32) {
-	switch address {
-	case DIV:
-		m.divider = 0
-		break
-	case TIMA:
-		m.counter = v
-		break
-	case TMA:
-		m.modulo = v
-	default:
-		return m.modulo //TODO update to control
+	m.internalDivider += ticks
+
+	for m.internalDivider >= 256 {
+		m.divider = m.divider + 1
+		m.internalDivider -= 256
+	}
+
+	if m.enabled {
+		m.internalCounter += ticks
+
+		for m.internalCounter >= m.step {
+			m.counter = m.counter + 1
+			if m.counter == 0 {
+				m.counter = m.modulo
+				m.Interrupt |= 0x04
+			}
+			m.internalCounter -= m.step
+		}
 	}
 }

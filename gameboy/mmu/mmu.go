@@ -109,7 +109,6 @@ func (m *MemoryManagementUnit) RW(address uint16) uint16 {
 	return uint16(b1)<<8 | uint16(b2)
 }
 
-func (m *MemoryManagementUnit) DoCycle(ticks uint32) uint32 {
-	m.div += ticks
-	return m.div
+func (m *MemoryManagementUnit) DoCycle(ticks uint32) {
+	m.timer.DoCycle(ticks)
 }
