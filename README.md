@@ -2,6 +2,16 @@
 
 A Game Boy emulator written in Go [Work in Progress].
 
+## Progress
+
+ - [x]  CPU (need tests)
+ - [x]  Timers
+ - [ ]  Interrupts
+ - [ ]  MMU
+ - [ ]  CART
+ - [ ]  MBC
+ - [ ]  GPU
+
 ## Resources
 
 - [Pandocs](https://gbdev.io/pandocs/) - GB technical reference
