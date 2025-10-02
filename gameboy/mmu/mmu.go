@@ -41,7 +41,7 @@ type MemoryManagementUnit struct {
 	wram [0x8000]byte
 	vram [0x4000]byte
 
-	div uint32
+	timer *Timer
 }
 
 func (m *MemoryManagementUnit) Dump() string {
@@ -60,18 +60,26 @@ func (m *MemoryManagementUnit) Dump() string {
 }
 
 func New() *MemoryManagementUnit {
-	return &MemoryManagementUnit{}
+	timer := TimerNew()
+	return &MemoryManagementUnit{
+		timer: timer,
+	}
 }
 
 func (m *MemoryManagementUnit) Init(rom []byte) {
 	m.hram = BOOTROM
+	m.timer.Init()
 
-	for i, v := range rom {
-		m.vram[ROM_START+i] = v
-	}
+	// for i, v := range rom {
+	// 	m.vram[ROM_START+i] = v
+	// }
 }
 
 func (m *MemoryManagementUnit) RB(address uint16) byte {
+	if IsTimerAddress(address) {
+		return m.timer.read(address)
+	}
+
 	if address < HRAM_END && address > HRAM_START {
 		return m.hram[address]
 	}

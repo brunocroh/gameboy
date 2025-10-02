@@ -1,15 +1,18 @@
 package mmu
 
-const DIVIDER = 0xFF04
-const COUNTER = 0xFF05
-const MODULO = 0xFF06
-const CONTROL = 0xFF07
+const (
+	DIV  = 0xFF04 // Divider
+	TIMA = 0xFF05 // Counter
+	TMA  = 0xFF06 // Modulo
+	TAC  = 0xFF07 // Control
+)
 
 type Timer struct {
-	divider uint8
-	counter uint8
-	modulo  uint8
-	control uint32
+	divider byte
+	counter byte
+	modulo  byte
+	control byte
+	step    byte
 	enabled bool
 }
 
@@ -26,20 +29,51 @@ func (m *Timer) Init() {
 }
 
 func IsTimerAddress(address uint16) bool {
-	if address >= DIVIDER || address <= CONTROL {
+	if address >= DIV || address <= TAC {
 		return true
 	}
 	return false
 }
 
-func (m *Timer) read(address uint16) uint8 {
+func (m *Timer) Read(address uint16) byte {
 	switch address {
-	case DIVIDER:
+	case DIV:
 		return m.divider
-	case COUNTER:
+	case TIMA:
 		return m.counter
-	case MODULO:
+	case TMA:
 		return m.modulo
+	default:
+		return m.modulo //TODO update to control
+	}
+}
+
+func (m *Timer) Write(address uint16, v byte) {
+	switch address {
+	case DIV:
+		m.divider = 0
+		break
+	case TIMA:
+		m.counter = v
+		break
+	case TMA:
+		m.modulo = v
+	default:
+		m.enabled = (v & 0x4) != 0
+
+	}
+}
+
+func (m *Timer) DoCycle(ticks uint32) {
+	switch address {
+	case DIV:
+		m.divider = 0
+		break
+	case TIMA:
+		m.counter = v
+		break
+	case TMA:
+		m.modulo = v
 	default:
 		return m.modulo //TODO update to control
 	}

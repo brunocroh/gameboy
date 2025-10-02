@@ -17,9 +17,9 @@ func New() *GameBoy {
 	return &GameBoy{}
 }
 
-func (m *GameBoy) Init() {
+func (m *GameBoy) Init(filePath string) {
 	m.mmu = mmu.New()
-	rom, err := LoadROM("any path for while")
+	rom, err := LoadROM(filePath)
 
 	if err != nil {
 		fmt.Println("FAIL TO LOAD ROM")
