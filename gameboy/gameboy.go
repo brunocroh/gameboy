@@ -19,6 +19,13 @@ func New() *GameBoy {
 
 func (m *GameBoy) Init() {
 	m.mmu = mmu.New()
+	rom, err := LoadROM("any path for while")
+
+	if err != nil {
+		fmt.Println("FAIL TO LOAD ROM")
+	}
+
+	m.mmu.Init(rom)
 	m.cpu = cpu.New(m.mmu)
 	m.cpu.Init()
 }

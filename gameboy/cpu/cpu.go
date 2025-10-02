@@ -33,7 +33,6 @@ func (m *CPU) Init() {
 	m.PC = 0x0100
 	m.SP = 0xFFFE
 	m.register.Init()
-	m.mmu.Init()
 	m.interupt.Init()
 }
 
