@@ -9,9 +9,9 @@ import (
 type CPU struct {
 	mmu *mmu.MemoryManagementUnit
 
-	ins      *instructions
-	register *register
-	interupt *interupt
+	ins       *instructions
+	register  *register
+	interrupt *interrupt
 
 	PC uint16
 	SP uint16
@@ -20,12 +20,12 @@ type CPU struct {
 func New(mmu *mmu.MemoryManagementUnit) *CPU {
 	i := instructionsNew()
 	r := registerNew()
-	interupt := interuptNew(mmu)
+	interrupt := interruptNew(mmu)
 	return &CPU{
-		mmu:      mmu,
-		ins:      i,
-		register: r,
-		interupt: interupt,
+		mmu:       mmu,
+		ins:       i,
+		register:  r,
+		interrupt: interrupt,
 	}
 }
 
@@ -33,7 +33,7 @@ func (m *CPU) Init() {
 	m.PC = 0x0100
 	m.SP = 0xFFFE
 	m.register.Init()
-	m.interupt.Init()
+	m.interrupt.Init()
 }
 
 func (m *CPU) Cycle() {
@@ -41,9 +41,14 @@ func (m *CPU) Cycle() {
 	dd := m.mmu.RB(0x0100)
 	fmt.Printf("PC: 0x%x, OPCODE: 0x%x, DD: 0x%x\n", m.PC, opcode, dd)
 
+	interruptOutput := m.interrupt.handleInterrupt()
 	m.doCycle(1)
+
+	if interruptOutput != 0 {
+		return
+	}
+
 	m.execInstruction(opcode)
-	m.interupt.HandleInterupt()
 }
 
 func (m *CPU) popPC() uint16 {
@@ -336,6 +341,6 @@ func (m *CPU) rw(addr uint16) uint16 {
 	return value
 }
 
-func (m *CPU) doCycle(ticks uint32) uint32 {
-	return m.mmu.DoCycle(ticks * 4)
+func (m *CPU) doCycle(ticks uint32) {
+	m.mmu.DoCycle(ticks * 4)
 }
