@@ -40,7 +40,7 @@ func IsTimerAddress(address uint16) bool {
 	return false
 }
 
-func (m *Timer) Read(address uint16) byte {
+func (m *Timer) read(address uint16) byte {
 	switch address {
 	case DIV:
 		return m.divider
@@ -54,13 +54,10 @@ func (m *Timer) Read(address uint16) byte {
 		switch m.step {
 		case 16:
 			stepCount = 1
-			break
 		case 64:
 			stepCount = 2
-			break
 		case 256:
 			stepCount = 3
-			break
 		default:
 			stepCount = byte(0)
 		}
@@ -68,19 +65,17 @@ func (m *Timer) Read(address uint16) byte {
 		if m.enabled {
 			return 0xF8 | 0x4 | stepCount
 		} else {
-			return 0xF8 | 0 | stepCount
+			return 0xF8 | stepCount
 		}
 	}
 }
 
-func (m *Timer) Write(address uint16, v byte) {
+func (m *Timer) write(address uint16, v byte) {
 	switch address {
 	case DIV:
 		m.divider = 0
-		break
 	case TIMA:
 		m.counter = v
-		break
 	case TMA:
 		m.modulo = v
 	case TAC:
@@ -88,13 +83,10 @@ func (m *Timer) Write(address uint16, v byte) {
 		switch v & 0x3 {
 		case 1:
 			m.step = 16
-			break
 		case 2:
 			m.step = 64
-			break
 		case 3:
 			m.step = 256
-			break
 		default:
 			m.step = 1024
 		}
