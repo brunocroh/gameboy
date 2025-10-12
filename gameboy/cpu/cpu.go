@@ -42,8 +42,8 @@ func (m *CPU) Cycle() {
 	fmt.Printf("PC: 0x%x, OPCODE: 0x%x, DD: 0x%x\n", m.PC, opcode, dd)
 
 	interruptOutput := m.interrupt.handleInterrupt()
-	m.doCycle(1)
 
+	m.doCycle(1)
 	if interruptOutput != 0 {
 		return
 	}

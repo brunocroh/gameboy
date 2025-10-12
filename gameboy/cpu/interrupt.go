@@ -8,8 +8,9 @@ const IE_ADDRESS = uint16(0xFFFF) // Interuptor Enabled memory location
 const IF_ADDRESS = uint16(0xFF0F) // Interuptor Flags memory location
 
 type interrupt struct {
-	IME bool
-	mmu *mmu.MemoryManagementUnit
+	IME  bool
+	Halt uint8
+	mmu  *mmu.MemoryManagementUnit
 }
 
 func interruptNew(mmu *mmu.MemoryManagementUnit) *interrupt {
@@ -22,7 +23,7 @@ func (m *interrupt) Init() {
 	m.IME = false
 }
 
-func (m *interrupt) handleInterrupt() uint32 {
+func (m *interrupt) handleInterrupt(pc uint8) uint32 {
 	if !m.IME {
 		return 0
 	}
@@ -35,6 +36,16 @@ func (m *interrupt) handleInterrupt() uint32 {
 	if triggered == 0 {
 		return 0
 	}
+
+	m.Halt = 0
+	if !m.IME {
+		return 0
+	}
+
+	intf &= ^(1 << triggered)
+	m.mmu.WB(IF_ADDRESS, intf)
+
+	//TODO: add PC to stack, and update PC
 
 	return 4
 }
