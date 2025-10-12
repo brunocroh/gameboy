@@ -23,7 +23,7 @@ func (m *interrupt) Init() {
 	m.IME = false
 }
 
-func (m *interrupt) handleInterrupt(pc uint8) uint32 {
+func (m *interrupt) handleInterrupt(pc uint16) uint32 {
 	if !m.IME {
 		return 0
 	}

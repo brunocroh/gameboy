@@ -41,7 +41,9 @@ func (m *CPU) Cycle() {
 	dd := m.mmu.RB(0x0100)
 	fmt.Printf("PC: 0x%x, OPCODE: 0x%x, DD: 0x%x\n", m.PC, opcode, dd)
 
-	interruptOutput := m.interrupt.handleInterrupt()
+	//TODO: Update timers
+
+	interruptOutput := m.interrupt.handleInterrupt(m.PC)
 
 	m.doCycle(1)
 	if interruptOutput != 0 {
