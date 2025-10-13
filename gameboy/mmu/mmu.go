@@ -3,6 +3,8 @@ package mmu
 import (
 	"fmt"
 	"strings"
+
+	"github.com/brunocroh/gameboy/gameboy/mbc"
 )
 
 const BOOTROM_SIZE = 256
@@ -40,8 +42,18 @@ type MemoryManagementUnit struct {
 	hram [0x100]byte
 	wram [0x8000]byte
 	vram [0x4000]byte
+	mbc  *mbc.MemoryBankController
 
 	timer *Timer
+}
+
+func New() *MemoryManagementUnit {
+	timer := TimerNew()
+	mbc := mbc.New()
+	return &MemoryManagementUnit{
+		timer: timer,
+		mbc:   mbc,
+	}
 }
 
 func (m *MemoryManagementUnit) Dump() string {
@@ -59,13 +71,6 @@ func (m *MemoryManagementUnit) Dump() string {
 	return strings.ToUpper(str.String())
 }
 
-func New() *MemoryManagementUnit {
-	timer := TimerNew()
-	return &MemoryManagementUnit{
-		timer: timer,
-	}
-}
-
 func (m *MemoryManagementUnit) Init(rom []byte) {
 	m.hram = BOOTROM
 	m.timer.Init()
@@ -76,15 +81,33 @@ func (m *MemoryManagementUnit) Init(rom []byte) {
 }
 
 func (m *MemoryManagementUnit) RB(address uint16) byte {
-	if IsTimerAddress(address) {
-		return m.timer.read(address)
+	switch address & 0xF000 {
+	case 0x1000:
+	case 0x2000:
+	case 0x3000:
+	case 0x4000:
+	case 0x5000:
+	case 0x6000:
+	case 0x7000:
+		return m.mbc.RB(address)
+	case 0x8000:
+	case 0x9000:
+		// GPU MEMORY
+		return 0xFF
+	case 0xC000:
+	case 0xD000:
+		return m.wram[address]
+	case 0xF000:
+		if IsTimerAddress(address) {
+			return m.timer.read(address)
+		}
+
+		if address < HRAM_END && address > HRAM_START {
+			return m.hram[address]
+		}
 	}
 
-	if address < HRAM_END && address > HRAM_START {
-		return m.hram[address]
-	}
-
-	return m.wram[address]
+	return 0xFF
 }
 
 func (m *MemoryManagementUnit) WB(address uint16, value byte) {
