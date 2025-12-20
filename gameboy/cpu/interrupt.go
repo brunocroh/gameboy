@@ -10,10 +10,10 @@ const IF_ADDRESS = uint16(0xFF0F) // Interuptor Flags memory location
 type interrupt struct {
 	IME  bool
 	Halt uint8
-	mmu  *mmu.MemoryManagementUnit
+	mmu  mmu.MemoryManagementUnit
 }
 
-func interruptNew(mmu *mmu.MemoryManagementUnit) *interrupt {
+func interruptNew(mmu mmu.MemoryManagementUnit) *interrupt {
 	return &interrupt{
 		mmu: mmu,
 	}

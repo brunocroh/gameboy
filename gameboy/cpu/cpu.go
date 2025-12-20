@@ -7,7 +7,7 @@ import (
 )
 
 type CPU struct {
-	mmu *mmu.MemoryManagementUnit
+	mmu mmu.MemoryManagementUnit
 
 	ins       *instructions
 	register  *register
@@ -17,7 +17,7 @@ type CPU struct {
 	SP uint16
 }
 
-func New(mmu *mmu.MemoryManagementUnit) *CPU {
+func New(mmu mmu.MemoryManagementUnit) *CPU {
 	i := instructionsNew()
 	r := registerNew()
 	interrupt := interruptNew(mmu)

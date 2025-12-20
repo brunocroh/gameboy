@@ -38,7 +38,16 @@ var BOOTROM = [BOOTROM_SIZE]byte{
 	0x3e, 0x01, 0xe0, 0x50,
 }
 
-type MemoryManagementUnit struct {
+type MemoryManagementUnit interface {
+	Dump() string
+	Init(rom []byte)
+	RB(address uint16) byte
+	WB(address uint16, value byte)
+	RW(address uint16) uint16
+	DoCycle(ticks uint32)
+}
+
+type MemoryManagementUnitImpl struct {
 	hram [0x100]byte
 	wram [0x8000]byte
 	vram [0x4000]byte
@@ -47,16 +56,16 @@ type MemoryManagementUnit struct {
 	timer *Timer
 }
 
-func New() *MemoryManagementUnit {
+func NewMemoryManagementUnitImpl() *MemoryManagementUnitImpl {
 	timer := TimerNew()
 	mbc := mbc.New()
-	return &MemoryManagementUnit{
+	return &MemoryManagementUnitImpl{
 		timer: timer,
 		mbc:   mbc,
 	}
 }
 
-func (m *MemoryManagementUnit) Dump() string {
+func (m *MemoryManagementUnitImpl) Dump() string {
 	var str strings.Builder
 	str.WriteString("\n")
 	for i := 0; i < len(m.hram); i += 2 {
@@ -71,7 +80,7 @@ func (m *MemoryManagementUnit) Dump() string {
 	return strings.ToUpper(str.String())
 }
 
-func (m *MemoryManagementUnit) Init(rom []byte) {
+func (m *MemoryManagementUnitImpl) Init(rom []byte) {
 	m.hram = BOOTROM
 	m.timer.Init()
 
@@ -80,7 +89,7 @@ func (m *MemoryManagementUnit) Init(rom []byte) {
 	// }
 }
 
-func (m *MemoryManagementUnit) RB(address uint16) byte {
+func (m *MemoryManagementUnitImpl) RB(address uint16) byte {
 	switch address & 0xF000 {
 	case 0x1000:
 	case 0x2000:
@@ -110,7 +119,7 @@ func (m *MemoryManagementUnit) RB(address uint16) byte {
 	return 0xFF
 }
 
-func (m *MemoryManagementUnit) WB(address uint16, value byte) {
+func (m *MemoryManagementUnitImpl) WB(address uint16, value byte) {
 	if address < HRAM_END && address > HRAM_START {
 		m.hram[address] = value
 	}
@@ -118,7 +127,7 @@ func (m *MemoryManagementUnit) WB(address uint16, value byte) {
 	m.wram[address] = value
 }
 
-func (m *MemoryManagementUnit) RW(address uint16) uint16 {
+func (m *MemoryManagementUnitImpl) RW(address uint16) uint16 {
 	var b1, b2 byte
 
 	if address < HRAM_END && address > HRAM_START {
@@ -132,6 +141,6 @@ func (m *MemoryManagementUnit) RW(address uint16) uint16 {
 	return uint16(b1)<<8 | uint16(b2)
 }
 
-func (m *MemoryManagementUnit) DoCycle(ticks uint32) {
+func (m *MemoryManagementUnitImpl) DoCycle(ticks uint32) {
 	m.timer.DoCycle(ticks)
 }

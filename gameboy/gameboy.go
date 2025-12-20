@@ -10,7 +10,7 @@ import (
 
 type GameBoy struct {
 	cpu *cpu.CPU
-	mmu *mmu.MemoryManagementUnit
+	mmu mmu.MemoryManagementUnit
 }
 
 func New() *GameBoy {
@@ -18,7 +18,7 @@ func New() *GameBoy {
 }
 
 func (m *GameBoy) Init(filePath string) {
-	m.mmu = mmu.New()
+	m.mmu = mmu.NewMemoryManagementUnitImpl()
 	rom, err := LoadROM(filePath)
 
 	if err != nil {
