@@ -6,8 +6,8 @@ A Game Boy emulator written in Go [Work in Progress].
 
  - [x]  CPU (need tests)
  - [x]  Timers
- - [ ]  Interrupts
- - [ ]  MMU
+ - [x]  Interrupts
+ - [x]  MMU (simple implementation for while)
  - [ ]  CART
  - [ ]  MBC
  - [ ]  GPU
@@ -21,4 +21,6 @@ A Game Boy emulator written in Go [Work in Progress].
 - [Gbops](https://izik1.github.io/gbops/index.html) - Accurate opcode for the Game Boy
 - [rgbds](https://rgbds.gbdev.io/) - Assembler/linker pkg
 - [GameBoy Memory Map](http://gameboy.mongenel.com/dmg/asmmemmap.html) - Detailed memory map
+- [Blargg Tests](https://gbdev.gg8.se/files/roms/blargg-gb-tests/) - Unit tests
+
 
