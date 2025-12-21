@@ -20,3 +20,5 @@ A Game Boy emulator written in Go [Work in Progress].
 - [Game Boy: Complete Technical Reference](https://gekkio.fi/files/gb-docs/gbctr.pdf) - Very useful material to understand how the GB system works, and detailed info about cpu instructions
 - [Gbops](https://izik1.github.io/gbops/index.html) - Accurate opcode for the Game Boy
 - [rgbds](https://rgbds.gbdev.io/) - Assembler/linker pkg
+- [GameBoy Memory Map](http://gameboy.mongenel.com/dmg/asmmemmap.html) - Detailed memory map
+
