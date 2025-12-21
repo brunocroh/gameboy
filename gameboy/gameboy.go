@@ -18,12 +18,14 @@ func New() *GameBoy {
 }
 
 func (m *GameBoy) Init(filePath string) {
-	m.mmu = mmu.NewMemoryManagementUnitImpl()
+	m.mmu = mmu.NewMemoryManagementUnitSimple()
 	rom, err := LoadROM(filePath)
 
 	if err != nil {
 		fmt.Println("FAIL TO LOAD ROM")
 	}
+
+	fmt.Println("ROM Len:", len(rom))
 
 	m.mmu.Init(rom)
 	m.cpu = cpu.New(m.mmu)
