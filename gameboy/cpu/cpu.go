@@ -30,7 +30,7 @@ func New(mmu mmu.MemoryManagementUnit) *CPU {
 }
 
 func (m *CPU) Init() {
-	m.PC = 0x0100
+	m.PC = 255
 	m.SP = 0xFFFE
 	m.register.Init()
 	m.interrupt.Init()
@@ -38,10 +38,7 @@ func (m *CPU) Init() {
 
 func (m *CPU) Cycle() {
 	opcode := m.fetchOpcode()
-	dd := m.mmu.RB(0x0100)
-	fmt.Printf("PC: 0x%x, OPCODE: 0x%x, DD: 0x%x\n", m.PC, opcode, dd)
-
-	//TODO: Update timers
+	fmt.Printf("PC: 0x%x, OPCODE: 0x%x\n", m.PC, opcode)
 
 	interruptOutput := m.interrupt.handleInterrupt(m.PC)
 
@@ -155,7 +152,13 @@ func (m *CPU) execInstruction(opcode byte) {
 	case 0xA6:
 		ticks = m.ins.and_HL(m)
 	case 0xA8:
-		ticks = m.ins.xor_r(m)
+	case 0xA9:
+	case 0xAA:
+	case 0xAB:
+	case 0xAC:
+	case 0xAD:
+	case 0xAF:
+		ticks = m.ins.xor_r(m, getRegister(m, opcode))
 	case 0xAE:
 		ticks = m.ins.xor_HL(m)
 	case 0xB0:

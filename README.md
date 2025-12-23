@@ -22,5 +22,3 @@ A Game Boy emulator written in Go [Work in Progress].
 - [rgbds](https://rgbds.gbdev.io/) - Assembler/linker pkg
 - [GameBoy Memory Map](http://gameboy.mongenel.com/dmg/asmmemmap.html) - Detailed memory map
 - [Blargg Tests](https://gbdev.gg8.se/files/roms/blargg-gb-tests/) - Unit tests
-
-

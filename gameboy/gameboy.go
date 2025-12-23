@@ -25,8 +25,6 @@ func (m *GameBoy) Init(filePath string) {
 		fmt.Println("FAIL TO LOAD ROM")
 	}
 
-	fmt.Println("ROM Len:", len(rom))
-
 	m.mmu.Init(rom)
 	m.cpu = cpu.New(m.mmu)
 	m.cpu.Init()
@@ -34,6 +32,7 @@ func (m *GameBoy) Init(filePath string) {
 
 func (m *GameBoy) Update() {
 	m.cpu.Cycle()
+	m.Debug()
 }
 
 func (m *GameBoy) Debug() {

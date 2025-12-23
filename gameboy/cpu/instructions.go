@@ -320,7 +320,7 @@ func (m *instructions) ld_nn_sp(cpu *CPU) uint32 {
 Machine Cycles: 3
 */
 func (m *instructions) ld_SP_nn(cpu *CPU) uint32 {
-	nn := cpu.mmu.RW(cpu.popPC())
+	nn := cpu.rw(cpu.PC)
 	cpu.SP = nn
 	return 3
 }
@@ -1069,11 +1069,10 @@ stores the result back into the A register.
 
 Machine Cycles: 1
 */
-func (m *instructions) xor_r(cpu *CPU) uint32 {
+func (m *instructions) xor_r(cpu *CPU, register *byte) uint32 {
 	a := cpu.register.a
-	b := cpu.register.b
 
-	r := a ^ b
+	r := a ^ *register
 
 	cpu.register.a = r
 
@@ -1949,6 +1948,7 @@ Machine Cycles: 4
 */
 func (m *instructions) jp_nn(cpu *CPU) uint32 {
 	cpu.PC = cpu.rw(cpu.PC)
+	fmt.Printf("JMP_NN: %02x\n", cpu.PC)
 	return 4
 }
 
