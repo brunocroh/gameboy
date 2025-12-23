@@ -101,6 +101,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.rra(m)
 	case 0x20:
 		ticks = m.ins.jr_cc(m)
+	case 0x21:
+		ticks = m.ins.ld_HL_nn(m)
 	case 0x22:
 		ticks = m.ins.ld_HLi_A(m)
 	case 0x27:
@@ -187,6 +189,7 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ret(m)
 	case 0xCB:
 		op := m.fetchOpcode()
+		fmt.Printf("CB OPCODE: %02x\n", op)
 		switch op & 0xF0 {
 		case 0x00:
 			if op < 0x08 {
@@ -247,10 +250,61 @@ func (m *CPU) execInstruction(opcode byte) {
 				}
 			}
 		case 0x40:
-			if op == 0x46 {
-				ticks = m.ins.bit_b_HL(m)
+			if op < 0x48 {
+				if op == 0x46 {
+					ticks = m.ins.bit_u3_HL(m, 0)
+				} else {
+					ticks = m.ins.bit_u3_r(m, 0, getRegister(m, op))
+				}
 			} else {
-				ticks = m.ins.bit_b_r(m, getRegister(m, op))
+				if op == 0x4E {
+					ticks = m.ins.bit_u3_HL(m, 1)
+				} else {
+					ticks = m.ins.bit_u3_r(m, 1, getRegister(m, op))
+				}
+			}
+		case 0x50:
+			if op < 0x58 {
+				if op == 0x56 {
+					ticks = m.ins.bit_u3_HL(m, 2)
+				} else {
+					ticks = m.ins.bit_u3_r(m, 2, getRegister(m, op))
+				}
+			} else {
+				if op == 0x5E {
+					ticks = m.ins.bit_u3_HL(m, 3)
+				} else {
+					ticks = m.ins.bit_u3_r(m, 3, getRegister(m, op))
+				}
+			}
+		case 0x60:
+			if op < 0x68 {
+				if op == 0x66 {
+					ticks = m.ins.bit_u3_HL(m, 4)
+				} else {
+					ticks = m.ins.bit_u3_r(m, 4, getRegister(m, op))
+				}
+			} else {
+				if op == 0x6E {
+					ticks = m.ins.bit_u3_HL(m, 5)
+				} else {
+					ticks = m.ins.bit_u3_r(m, 5, getRegister(m, op))
+				}
+			}
+		case 0x70:
+			if op < 0x78 {
+				if op == 0x76 {
+					ticks = m.ins.bit_u3_HL(m, 6)
+				} else {
+					ticks = m.ins.bit_u3_r(m, 6, getRegister(m, op))
+				}
+			} else {
+				if op == 0x7E {
+					ticks = m.ins.bit_u3_HL(m, 7)
+				} else {
+					ticks = m.ins.bit_u3_r(m, 7, getRegister(m, op))
+				}
+
 			}
 		case 0x80:
 			if op == 0x86 {
@@ -264,6 +318,8 @@ func (m *CPU) execInstruction(opcode byte) {
 			} else {
 				ticks = m.ins.set_b_r(m, getRegister(m, op))
 			}
+		default:
+			fmt.Printf("CB opcode (0x%x) not implemented\n", op)
 		}
 	case 0xCD:
 		ticks = m.ins.call_nn(m)

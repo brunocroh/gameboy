@@ -76,6 +76,22 @@ func (m *instructions) ld_HL_n(cpu *CPU) uint32 {
 }
 
 /*
+0x21 - LD HL, nn: Load 16-bit register / register pair
+
+Load to the 16-bit register HL, the immediate 16-bit data nn.
+
+Machine Cycles: 3
+*/
+func (m *instructions) ld_HL_nn(cpu *CPU) uint32 {
+	word := cpu.rw(cpu.PC)
+
+	cpu.register.b = uint8(word >> 8)
+	cpu.register.c = uint8(word & 0x00FF)
+
+	return 3
+}
+
+/*
 0x0A - LD A, (BC): Load accumulator (indirect BC)
 
 Load to the 8-bit A register, data from the absolute address specified by the 16-bit register BC.
@@ -238,10 +254,12 @@ Machine Cycles: 2
 */
 func (m *instructions) ld_HLd_A(cpu *CPU) uint32 {
 	hl := uint16(cpu.register.h)<<8 | uint16(cpu.register.l)
+	cpu.mmu.WB(hl, cpu.register.a)
+
 	value := hl - 1
 	cpu.register.h = uint8(value >> 8)
 	cpu.register.l = uint8(value & 0x00FF)
-	cpu.mmu.WB(hl, cpu.register.a)
+
 	return 2
 }
 
@@ -1829,10 +1847,12 @@ The zero flag is set to 1 if the chosen bit is 0, and 0 otherwise.
 
 Machine Cycles: 2
 */
-func (m *instructions) bit_b_r(cpu *CPU, register *uint8) uint32 {
+func (m *instructions) bit_u3_r(cpu *CPU, u3 byte, register *uint8) uint32 {
+	// maybe add a valitation to check if u3 is 7 or less
+
 	r := *register
 
-	b0 := r << (1 << 0)
+	b0 := r << (1 << u3)
 
 	cpu.register.setFlag("Z", b0 == 0)
 	cpu.register.setFlag("N", false)
@@ -1849,14 +1869,16 @@ The zero flag is set to 1 if the chosen bit is 0, and 0 otherwise.
 
 Machine Cycles: 3
 */
-func (m *instructions) bit_b_HL(cpu *CPU) uint32 {
+func (m *instructions) bit_u3_HL(cpu *CPU, u3 byte) uint32 {
+	// maybe add a valitation to check if u3 is 7 or less
+
 	h := cpu.register.h
 	l := cpu.register.l
 	hl := uint16(h)<<7 | uint16(l)
 
 	data := cpu.mmu.RB(hl)
 
-	b0 := data << (1 << 0)
+	b0 := data << (1 << u3)
 
 	cpu.register.setFlag("Z", b0 == 0)
 	cpu.register.setFlag("N", false)
@@ -1948,7 +1970,6 @@ Machine Cycles: 4
 */
 func (m *instructions) jp_nn(cpu *CPU) uint32 {
 	cpu.PC = cpu.rw(cpu.PC)
-	fmt.Printf("JMP_NN: %02x\n", cpu.PC)
 	return 4
 }
 
