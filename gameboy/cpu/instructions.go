@@ -2041,7 +2041,9 @@ Machine Cycles: 2 cc = false
 func (m *instructions) jr_cc(cpu *CPU) uint32 {
 	e := cpu.mmu.RB(cpu.popPC())
 
-	if cpu.register.getFlag("Z") {
+	fmt.Printf("e: %02x | PC: %02x ", e, cpu.PC)
+
+	if !cpu.register.getFlag("Z") {
 		cpu.PC = cpu.PC + uint16(e)
 		return 3
 	}
