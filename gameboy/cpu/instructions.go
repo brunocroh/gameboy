@@ -20,8 +20,8 @@ Load to the 8-bit register r, data from the 8-bit register r'.
 
 Machine Cycles: 1
 */
-func (m *instructions) ld_rr(cpu *CPU) uint32 {
-	cpu.register.b = cpu.register.c
+func (m *instructions) ld_rr(cpu *CPU, r1 *uint8, r2 *uint8) uint32 {
+	*r1 = *r2
 	return 1
 }
 
@@ -44,9 +44,9 @@ Load to the 8-bit register r, data from the absolute address specified by the 16
 
 Machine Cycles: 2
 */
-func (m *instructions) ld_r_HL(cpu *CPU) uint32 {
+func (m *instructions) ld_r_HL(cpu *CPU, r *uint8) uint32 {
 	hl := uint16(cpu.register.h)<<8 | uint16(cpu.register.l)
-	cpu.register.b = cpu.mmu.RB(hl)
+	*r = cpu.mmu.RB(hl)
 	return 2
 }
 

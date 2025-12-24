@@ -135,10 +135,30 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ld_r_n(m, &m.register.a)
 	case 0x3F:
 		ticks = m.ins.ccf(m)
-	case 0x41:
-		ticks = m.ins.ld_rr(m)
+	case 0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x47:
+		ticks = m.ins.ld_rr(m, &m.register.b, getRegister(m, opcode))
 	case 0x46:
-		ticks = m.ins.ld_r_HL(m)
+		ticks = m.ins.ld_r_HL(m, &m.register.b)
+	case 0x48, 0x49, 0x4A, 0x4B, 0x4C, 0x4D, 0x4F:
+		ticks = m.ins.ld_rr(m, &m.register.c, getRegister(m, opcode))
+	case 0x4E:
+		ticks = m.ins.ld_r_HL(m, &m.register.c)
+	case 0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x57:
+		ticks = m.ins.ld_rr(m, &m.register.d, getRegister(m, opcode))
+	case 0x56:
+		ticks = m.ins.ld_r_HL(m, &m.register.d)
+	case 0x58, 0x59, 0x5A, 0x5B, 0x5C, 0x5D, 0x5F:
+		ticks = m.ins.ld_rr(m, &m.register.e, getRegister(m, opcode))
+	case 0x5E:
+		ticks = m.ins.ld_r_HL(m, &m.register.e)
+	case 0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x67:
+		ticks = m.ins.ld_rr(m, &m.register.h, getRegister(m, opcode))
+	case 0x66:
+		ticks = m.ins.ld_r_HL(m, &m.register.h)
+	case 0x68, 0x69, 0x6A, 0x6B, 0x6C, 0x6D, 0x6F:
+		ticks = m.ins.ld_rr(m, &m.register.l, getRegister(m, opcode))
+	case 0x6E:
+		ticks = m.ins.ld_r_HL(m, &m.register.l)
 	case 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x77:
 		ticks = m.ins.ld_HL_r(m, getRegister(m, opcode))
 	case 0x80:
