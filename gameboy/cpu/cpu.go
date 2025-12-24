@@ -66,17 +66,17 @@ func (m *CPU) execInstruction(opcode byte) {
 	case 0x00:
 		ticks = m.ins.nop()
 	case 0x01:
-		ticks = m.ins.ld_rr_nn(m)
+		ticks = m.ins.ld_rr_nn(m, &m.register.b, &m.register.c)
 	case 0x02:
 		ticks = m.ins.ld_BC_A(m)
 	case 0x03:
 		ticks = m.ins.inc_rr(m)
 	case 0x04:
-		ticks = m.ins.inc_r(m)
+		ticks = m.ins.inc_r(m, &m.register.b)
 	case 0x05:
 		ticks = m.ins.dec_r(m)
 	case 0x06:
-		ticks = m.ins.ld_r_n(m)
+		ticks = m.ins.ld_r_n(m, &m.register.b)
 	case 0x07:
 		ticks = m.ins.rlca(m)
 	case 0x08:
@@ -87,8 +87,14 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ld_A_BC(m)
 	case 0x0B:
 		ticks = m.ins.dec_rr(m)
+	case 0x0C:
+		ticks = m.ins.inc_r(m, &m.register.c)
+	case 0x0E:
+		ticks = m.ins.ld_r_n(m, &m.register.c)
 	case 0x0F:
 		ticks = m.ins.rrca(m)
+	case 0x11:
+		ticks = m.ins.ld_rr_nn(m, &m.register.d, &m.register.e)
 	case 0x12:
 		ticks = m.ins.ld_DE_A(m)
 	case 0x17:
@@ -102,7 +108,7 @@ func (m *CPU) execInstruction(opcode byte) {
 	case 0x20:
 		ticks = m.ins.jr_cc(m)
 	case 0x21:
-		ticks = m.ins.ld_HL_nn(m)
+		ticks = m.ins.ld_rr_nn(m, &m.register.h, &m.register.l)
 	case 0x22:
 		ticks = m.ins.ld_HLi_A(m)
 	case 0x27:
@@ -125,14 +131,16 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.scf(m)
 	case 0x3A:
 		ticks = m.ins.ld_A_HLd(m)
+	case 0x3E:
+		ticks = m.ins.ld_r_n(m, &m.register.a)
 	case 0x3F:
 		ticks = m.ins.ccf(m)
 	case 0x41:
 		ticks = m.ins.ld_rr(m)
 	case 0x46:
 		ticks = m.ins.ld_r_HL(m)
-	case 0x70:
-		ticks = m.ins.ld_HL_r(m)
+	case 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x77:
+		ticks = m.ins.ld_HL_r(m, getRegister(m, opcode))
 	case 0x80:
 		ticks = m.ins.add_r(m)
 	case 0x86:
@@ -153,13 +161,7 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.and_r(m)
 	case 0xA6:
 		ticks = m.ins.and_HL(m)
-	case 0xA8:
-	case 0xA9:
-	case 0xAA:
-	case 0xAB:
-	case 0xAC:
-	case 0xAD:
-	case 0xAF:
+	case 0xA8, 0xA9, 0xAA, 0xAB, 0xAC, 0xAD, 0xAF:
 		ticks = m.ins.xor_r(m, getRegister(m, opcode))
 	case 0xAE:
 		ticks = m.ins.xor_HL(m)
@@ -370,28 +372,23 @@ func (m *CPU) execInstruction(opcode byte) {
 
 func getRegister(m *CPU, opcode byte) *uint8 {
 	switch opcode & 0x0F {
-	case 0x00:
-	case 0x08:
+	case 0x00, 0x08:
 		return &m.register.b
-	case 0x01:
-	case 0x09:
+	case 0x01, 0x09:
 		return &m.register.c
-	case 0x02:
-	case 0x0A:
+	case 0x02, 0x0A:
 		return &m.register.d
-	case 0x03:
-	case 0x0B:
+	case 0x03, 0x0B:
 		return &m.register.e
-	case 0x04:
-	case 0x0C:
+	case 0x04, 0x0C:
 		return &m.register.h
-	case 0x05:
-	case 0x0D:
+	case 0x05, 0x0D:
 		return &m.register.l
-	case 0x07:
-	case 0x0F:
+	case 0x07, 0x0F:
 		return &m.register.a
 	}
+
+	fmt.Printf("no register BRO %02x\n", opcode&0x0F)
 
 	return nil
 }

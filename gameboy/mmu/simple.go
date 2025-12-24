@@ -41,7 +41,7 @@ func (m *MemoryManagementUnitSimple) Init(rom []byte) {
 	}
 
 	for i, v := range rom {
-		m.memory_arr[ROM_START+i] = v
+		m.memory_arr[i] = v
 	}
 }
 

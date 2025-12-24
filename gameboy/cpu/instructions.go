@@ -1,6 +1,8 @@
 package cpu
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type instructions struct {
 }
@@ -30,8 +32,8 @@ Load to the 8-bit register r, the immediate data n.
 
 Machine Cycles: 2
 */
-func (m *instructions) ld_r_n(cpu *CPU) uint32 {
-	cpu.register.b = cpu.mmu.RB(cpu.popPC())
+func (m *instructions) ld_r_n(cpu *CPU, r *uint8) uint32 {
+	*r = cpu.mmu.RB(cpu.popPC())
 	return 2
 }
 
@@ -55,9 +57,9 @@ Load to the absolute address specified by the 16-bit register HL, data from the 
 
 Machine Cycles: 2
 */
-func (m *instructions) ld_HL_r(cpu *CPU) uint32 {
+func (m *instructions) ld_HL_r(cpu *CPU, r *uint8) uint32 {
 	hl := uint16(cpu.register.h)<<8 | uint16(cpu.register.l)
-	cpu.mmu.WB(hl, cpu.register.b)
+	cpu.mmu.WB(hl, *r)
 	return 2
 }
 
@@ -72,22 +74,6 @@ func (m *instructions) ld_HL_n(cpu *CPU) uint32 {
 	hl := uint16(cpu.register.h)<<8 | uint16(cpu.register.l)
 	n := cpu.mmu.RB(cpu.popPC())
 	cpu.mmu.WB(hl, n)
-	return 3
-}
-
-/*
-0x21 - LD HL, nn: Load 16-bit register / register pair
-
-Load to the 16-bit register HL, the immediate 16-bit data nn.
-
-Machine Cycles: 3
-*/
-func (m *instructions) ld_HL_nn(cpu *CPU) uint32 {
-	word := cpu.rw(cpu.PC)
-
-	cpu.register.b = uint8(word >> 8)
-	cpu.register.c = uint8(word & 0x00FF)
-
 	return 3
 }
 
@@ -306,11 +292,11 @@ Load to the 16-bit register rr, the immediate 16-bit data nn.
 
 Machine Cycles: 3
 */
-func (m *instructions) ld_rr_nn(cpu *CPU) uint32 {
+func (m *instructions) ld_rr_nn(cpu *CPU, r1 *uint8, r2 *uint8) uint32 {
 	word := cpu.rw(cpu.PC)
 
-	cpu.register.b = uint8(word >> 8)
-	cpu.register.c = uint8(word & 0x00FF)
+	*r1 = uint8(word >> 8)
+	*r2 = uint8(word & 0x00FF)
 	return 3
 }
 
@@ -815,15 +801,13 @@ func (m *instructions) cp_n(cpu *CPU) uint32 {
 
 Machine Cycles: 1
 */
-func (m *instructions) inc_r(cpu *CPU) uint32 {
-	b := cpu.register.b
+func (m *instructions) inc_r(cpu *CPU, r *uint8) uint32 {
+	v := *r
+	*r = v + 1
 
-	r := b + 1
-	cpu.register.b = r
-
-	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("Z", *r == 0x0)
 	cpu.register.setFlag("N", false)
-	cpu.register.setFlag("H", (b&0x0F)+1 > 0x0F)
+	cpu.register.setFlag("H", (v&0x0F)+1 > 0x0F)
 
 	return 1
 }
@@ -1930,7 +1914,7 @@ Sets the bit b of the 8-bit register r to 1.
 
 Machine Cycles: 2
 */
-func (m *instructions) set_b_r(cpu *CPU, register *uint8) uint32 {
+func (m *instructions) set_b_r(_ *CPU, register *uint8) uint32 {
 	r := *register
 
 	*register = r << 1
@@ -2041,7 +2025,7 @@ Machine Cycles: 2 cc = false
 func (m *instructions) jr_cc(cpu *CPU) uint32 {
 	e := cpu.mmu.RB(cpu.popPC())
 
-	fmt.Printf("e: %02x | PC: %02x ", e, cpu.PC)
+	fmt.Printf("e: %02x | PC: %02x\n ", e, cpu.PC)
 
 	if !cpu.register.getFlag("Z") {
 		cpu.PC = cpu.PC + uint16(e)
@@ -2059,18 +2043,15 @@ Unconditional function call to the absolute address specified by the 16-bit oper
 Machine Cycles: 6
 */
 func (m *instructions) call_nn(cpu *CPU) uint32 {
-	lsb := cpu.mmu.RB(cpu.popPC())
-	msb := cpu.mmu.RB(cpu.popPC())
-
-	nn := uint16(msb) | uint16(lsb)
+	word := cpu.rw(cpu.PC)
 
 	cpu.SP -= 1
-	cpu.mmu.WB(cpu.SP, msb)
+	cpu.mmu.WB(cpu.SP, uint8(word>>8))
 
 	cpu.SP -= 1
-	cpu.mmu.WB(cpu.SP, lsb)
+	cpu.mmu.WB(cpu.SP, uint8(word))
 
-	cpu.PC = nn
+	cpu.PC = word
 
 	return 6
 }
