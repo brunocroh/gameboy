@@ -38,7 +38,6 @@ func (m *CPU) Init() {
 
 func (m *CPU) Cycle() {
 	opcode := m.fetchOpcode()
-	fmt.Printf("PC: 0x%x, OPCODE: 0x%x\n", m.PC, opcode)
 
 	interruptOutput := m.interrupt.handleInterrupt(m.PC)
 
@@ -74,7 +73,7 @@ func (m *CPU) execInstruction(opcode byte) {
 	case 0x04:
 		ticks = m.ins.inc_r(m, &m.register.b)
 	case 0x05:
-		ticks = m.ins.dec_r(m)
+		ticks = m.ins.dec_r(m, &m.register.b)
 	case 0x06:
 		ticks = m.ins.ld_r_n(m, &m.register.b)
 	case 0x07:
@@ -89,32 +88,52 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.dec_rr(m)
 	case 0x0C:
 		ticks = m.ins.inc_r(m, &m.register.c)
+	case 0x0D:
+		ticks = m.ins.dec_r(m, &m.register.c)
 	case 0x0E:
 		ticks = m.ins.ld_r_n(m, &m.register.c)
 	case 0x0F:
 		ticks = m.ins.rrca(m)
+	case 0x10:
+		// fmt.Println("0x10 - STOP Instruction")
 	case 0x11:
 		ticks = m.ins.ld_rr_nn(m, &m.register.d, &m.register.e)
 	case 0x12:
 		ticks = m.ins.ld_DE_A(m)
+	case 0x14:
+		ticks = m.ins.inc_r(m, &m.register.d)
+	case 0x15:
+		ticks = m.ins.dec_r(m, &m.register.d)
 	case 0x17:
 		ticks = m.ins.rla(m)
 	case 0x18:
 		ticks = m.ins.jr_e(m)
 	case 0x1A:
 		ticks = m.ins.ld_A_DE(m)
+	case 0x1C:
+		ticks = m.ins.inc_r(m, &m.register.e)
+	case 0x1D:
+		ticks = m.ins.dec_r(m, &m.register.e)
 	case 0x1F:
 		ticks = m.ins.rra(m)
 	case 0x20:
-		ticks = m.ins.jr_cc(m)
+		ticks = m.ins.jr_nz(m)
 	case 0x21:
 		ticks = m.ins.ld_rr_nn(m, &m.register.h, &m.register.l)
 	case 0x22:
 		ticks = m.ins.ld_HLi_A(m)
+	case 0x24:
+		ticks = m.ins.inc_r(m, &m.register.h)
+	case 0x25:
+		ticks = m.ins.dec_r(m, &m.register.h)
 	case 0x27:
 		ticks = m.ins.daa(m)
 	case 0x2A:
 		ticks = m.ins.ld_A_HLi(m)
+	case 0x2C:
+		ticks = m.ins.inc_r(m, &m.register.l)
+	case 0x2D:
+		ticks = m.ins.dec_r(m, &m.register.l)
 	case 0x2F:
 		ticks = m.ins.cpl(m)
 	case 0x31:
@@ -131,6 +150,10 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.scf(m)
 	case 0x3A:
 		ticks = m.ins.ld_A_HLd(m)
+	case 0x3C:
+		ticks = m.ins.inc_r(m, &m.register.a)
+	case 0x3D:
+		ticks = m.ins.dec_r(m, &m.register.a)
 	case 0x3E:
 		ticks = m.ins.ld_r_n(m, &m.register.a)
 	case 0x3F:
@@ -161,6 +184,10 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ld_r_HL(m, &m.register.l)
 	case 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x77:
 		ticks = m.ins.ld_HL_r(m, getRegister(m, opcode))
+	case 0x78, 0x79, 0x7A, 0x7B, 0x7C, 0x7D, 0x7F:
+		ticks = m.ins.ld_rr(m, &m.register.d, getRegister(m, opcode))
+	case 0x7E:
+		ticks = m.ins.ld_r_HL(m, &m.register.d)
 	case 0x80:
 		ticks = m.ins.add_r(m)
 	case 0x86:
@@ -211,7 +238,6 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ret(m)
 	case 0xCB:
 		op := m.fetchOpcode()
-		fmt.Printf("CB OPCODE: %02x\n", op)
 		switch op & 0xF0 {
 		case 0x00:
 			if op < 0x08 {
@@ -371,6 +397,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ldh_A_n(m)
 	case 0xF2:
 		ticks = m.ins.ldh_A_C(m)
+	case 0xF3:
+		ticks = m.ins.di(m)
 	case 0xF6:
 		ticks = m.ins.or_n(m)
 	case 0xF8:
@@ -385,9 +413,28 @@ func (m *CPU) execInstruction(opcode byte) {
 		fmt.Printf("opcode (0x%x) not implemented\n", opcode)
 	}
 
+	if m.PC > 0x209 && m.mmu.RB(m.PC) != 0x00 {
+		// fmt.Printf("A:%02x B:%02x C:%02x D:%02x E:%02x H:%02x L:%02x SP:%04x PC:%04x PCMEMEN:%02x, %02x, %02x, %02x\n",
+		// 	m.register.a,
+		// 	m.register.b,
+		// 	m.register.c,
+		// 	m.register.d,
+		// 	m.register.e,
+		// 	m.register.h,
+		// 	m.register.l,
+		// 	m.SP,
+		// 	m.PC,
+		// 	m.mmu.RB(m.PC),
+		// 	m.mmu.RB(m.PC+1),
+		// 	m.mmu.RB(m.PC+2),
+		// 	m.mmu.RB(m.PC+3))
+		//
+	}
+
 	if ticks != 0 {
 		m.doCycle(ticks)
 	}
+
 }
 
 func getRegister(m *CPU, opcode byte) *uint8 {

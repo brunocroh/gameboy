@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bufio"
+	// "bufio"
 	"fmt"
 	"os"
 
@@ -15,15 +15,17 @@ func main() {
 	gb := gameboy.New()
 	gb.Init(romPath[0])
 
-	reader := bufio.NewReader(os.Stdin)
+	// reader := bufio.NewReader(os.Stdin)
 
 	for {
-		_, err := reader.ReadString('\n')
+		// _, err := reader.ReadString('\n')
+		//
+		// if err != nil {
+		// 	fmt.Println("fail to read", err)
+		// 	return
+		// }
 
-		if err != nil {
-			fmt.Println("fail to read", err)
-			return
-		}
+		// time.Sleep(100 * time.Millisecond)
 
 		gb.Update()
 	}

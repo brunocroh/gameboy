@@ -50,6 +50,9 @@ func (m *MemoryManagementUnitSimple) RB(address uint16) byte {
 }
 
 func (m *MemoryManagementUnitSimple) WB(address uint16, value byte) {
+	if address == 0xFF02 || address == 0xFF01 {
+		fmt.Print(m.memory_arr[0xFF01])
+	}
 	m.memory_arr[address] = value
 }
 

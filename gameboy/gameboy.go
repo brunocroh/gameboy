@@ -22,7 +22,7 @@ func (m *GameBoy) Init(filePath string) {
 	rom, err := LoadROM(filePath)
 
 	if err != nil {
-		fmt.Println("FAIL TO LOAD ROM")
+		fmt.Println("FAIL TO LOAD ROM", err)
 	}
 
 	m.mmu.Init(rom)
@@ -32,7 +32,6 @@ func (m *GameBoy) Init(filePath string) {
 
 func (m *GameBoy) Update() {
 	m.cpu.Cycle()
-	m.Debug()
 }
 
 func (m *GameBoy) Debug() {

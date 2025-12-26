@@ -297,6 +297,7 @@ func (m *instructions) ld_rr_nn(cpu *CPU, r1 *uint8, r2 *uint8) uint32 {
 
 	*r1 = uint8(word >> 8)
 	*r2 = uint8(word & 0x00FF)
+
 	return 3
 }
 
@@ -844,15 +845,14 @@ func (m *instructions) inc_HL(cpu *CPU) uint32 {
 
 Machine Cycles: 1
 */
-func (m *instructions) dec_r(cpu *CPU) uint32 {
-	b := cpu.register.b
+func (m *instructions) dec_r(cpu *CPU, r *uint8) uint32 {
+	v := *r
 
-	r := b - 1
-	cpu.register.b = r
+	*r = v - 1
 
-	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("Z", *r == 0x0)
 	cpu.register.setFlag("N", false)
-	cpu.register.setFlag("H", (b&0x0F)-1 > 0x0F)
+	cpu.register.setFlag("H", (v&0x0F)-1 > 0x0F)
 
 	return 1
 }
@@ -2022,14 +2022,14 @@ Note that the operand (relative address offset) is read even when the condition 
 Machine Cycles: 3 cc = true
 Machine Cycles: 2 cc = false
 */
-func (m *instructions) jr_cc(cpu *CPU) uint32 {
-	e := cpu.mmu.RB(cpu.popPC())
-
-	fmt.Printf("e: %02x | PC: %02x\n ", e, cpu.PC)
+func (m *instructions) jr_nz(cpu *CPU) uint32 {
+	n := cpu.mmu.RB(cpu.PC)
 
 	if !cpu.register.getFlag("Z") {
-		cpu.PC = cpu.PC + uint16(e)
+		cpu.PC = uint16(int32(cpu.PC) + int32(int8(n)))
 		return 3
+	} else {
+		cpu.popPC()
 	}
 
 	return 2
@@ -2172,6 +2172,8 @@ func (m *instructions) rst_n(cpu *CPU) uint32 {
 	return 4
 }
 
+// ---- MISC ----
+
 /*
 0x00 - NOP: No operation
 
@@ -2184,4 +2186,15 @@ func (m *instructions) nop() uint32 {
 	return 1
 }
 
-// ---- MISC ----
+/*
+0xF3 - DI: Disable Interrupts
+
+Disables interrupt handling by setting IME=0 and cancelling any scheduled effects of the EI
+instruction if any
+
+Machine Cycles: 1
+*/
+func (m *instructions) di(cpu *CPU) uint32 {
+	cpu.interrupt.IME = false
+	return 1
+}
