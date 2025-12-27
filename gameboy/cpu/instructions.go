@@ -349,11 +349,11 @@ Push to the stack memory, data from the 16-bit register rr.
 
 Machine Cycles: 4
 */
-func (m *instructions) ld_push_rr(cpu *CPU) uint32 {
+func (m *instructions) ld_push_rr(cpu *CPU, r1 *uint8, r2 *uint8) uint32 {
 	cpu.SP -= 1
-	cpu.mmu.WB(cpu.SP, cpu.register.b)
+	cpu.mmu.WB(cpu.SP, *r1)
 	cpu.SP -= 1
-	cpu.mmu.WB(cpu.SP, cpu.register.c)
+	cpu.mmu.WB(cpu.SP, *r2)
 	return 4
 }
 
@@ -851,7 +851,7 @@ func (m *instructions) dec_r(cpu *CPU, r *uint8) uint32 {
 	*r = v - 1
 
 	cpu.register.setFlag("Z", *r == 0x0)
-	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("N", true)
 	cpu.register.setFlag("H", (v&0x0F)-1 > 0x0F)
 
 	return 1
@@ -1522,7 +1522,7 @@ Machine Cycles: 4
 func (m *instructions) rl_HL(cpu *CPU) uint32 {
 	h := cpu.register.h
 	l := cpu.register.l
-	hl := uint16(h)<<7 | uint16(l)
+	hl := uint16(h)<<8 | uint16(l)
 
 	c := uint8(0)
 	if cpu.register.getFlag("C") {
@@ -1648,7 +1648,7 @@ Machine Cycles: 4
 func (m *instructions) sla_HL(cpu *CPU) uint32 {
 	h := cpu.register.h
 	l := cpu.register.l
-	hl := uint16(h)<<7 | uint16(l)
+	hl := uint16(h)<<8 | uint16(l)
 
 	data := cpu.mmu.RB(hl)
 
@@ -1703,7 +1703,7 @@ Machine Cycles: 4
 func (m *instructions) sra_HL(cpu *CPU) uint32 {
 	h := cpu.register.h
 	l := cpu.register.l
-	hl := uint16(h)<<7 | uint16(l)
+	hl := uint16(h)<<8 | uint16(l)
 
 	data := cpu.mmu.RB(hl)
 
@@ -1754,7 +1754,7 @@ Machine Cycles: 4
 func (m *instructions) swap_HL(cpu *CPU) uint32 {
 	h := cpu.register.h
 	l := cpu.register.l
-	hl := uint16(h)<<7 | uint16(l)
+	hl := uint16(h)<<8 | uint16(l)
 
 	data := cpu.mmu.RB(hl)
 
@@ -1806,7 +1806,7 @@ Machine Cycles: 4
 func (m *instructions) srl_HL(cpu *CPU) uint32 {
 	h := cpu.register.h
 	l := cpu.register.l
-	hl := uint16(h)<<7 | uint16(l)
+	hl := uint16(h)<<8 | uint16(l)
 
 	data := cpu.mmu.RB(hl)
 
@@ -1858,7 +1858,7 @@ func (m *instructions) bit_u3_HL(cpu *CPU, u3 byte) uint32 {
 
 	h := cpu.register.h
 	l := cpu.register.l
-	hl := uint16(h)<<7 | uint16(l)
+	hl := uint16(h)<<8 | uint16(l)
 
 	data := cpu.mmu.RB(hl)
 
@@ -1896,7 +1896,7 @@ Machine Cycles: 4
 func (m *instructions) res_b_HL(cpu *CPU) uint32 {
 	h := cpu.register.h
 	l := cpu.register.l
-	hl := uint16(h)<<7 | uint16(l)
+	hl := uint16(h)<<8 | uint16(l)
 
 	data := cpu.mmu.RB(hl)
 
@@ -1932,7 +1932,7 @@ Machine Cycles: 4
 func (m *instructions) set_b_HL(cpu *CPU) uint32 {
 	h := cpu.register.h
 	l := cpu.register.l
-	hl := uint16(h)<<7 | uint16(l)
+	hl := uint16(h)<<8 | uint16(l)
 
 	data := cpu.mmu.RB(hl)
 
@@ -1967,7 +1967,7 @@ Machine Cycles: 1
 func (m *instructions) jp_HL(cpu *CPU) uint32 {
 	h := cpu.register.h
 	l := cpu.register.l
-	hl := uint16(h)<<7 | uint16(l)
+	hl := uint16(h)<<8 | uint16(l)
 	cpu.PC = hl
 	return 1
 }
@@ -1987,7 +1987,7 @@ func (m *instructions) jp_cc_nn(cpu *CPU) uint32 {
 	lsb := cpu.mmu.RB(cpu.popPC())
 	msb := cpu.mmu.RB(cpu.popPC())
 
-	nn := uint16(msb)<<7 | uint16(lsb)
+	nn := uint16(msb)<<8 | uint16(lsb)
 
 	if cpu.register.getFlag("Z") {
 		cpu.PC = nn
@@ -2023,13 +2023,11 @@ Machine Cycles: 3 cc = true
 Machine Cycles: 2 cc = false
 */
 func (m *instructions) jr_nz(cpu *CPU) uint32 {
-	n := cpu.mmu.RB(cpu.PC)
+	n := cpu.mmu.RB(cpu.popPC())
 
 	if !cpu.register.getFlag("Z") {
 		cpu.PC = uint16(int32(cpu.PC) + int32(int8(n)))
 		return 3
-	} else {
-		cpu.popPC()
 	}
 
 	return 2
@@ -2043,15 +2041,15 @@ Unconditional function call to the absolute address specified by the 16-bit oper
 Machine Cycles: 6
 */
 func (m *instructions) call_nn(cpu *CPU) uint32 {
-	word := cpu.rw(cpu.PC)
+	nn := cpu.rw(cpu.PC)
 
 	cpu.SP -= 1
-	cpu.mmu.WB(cpu.SP, uint8(word>>8))
+	cpu.mmu.WB(cpu.SP, uint8((cpu.PC)>>8))
 
 	cpu.SP -= 1
-	cpu.mmu.WB(cpu.SP, uint8(word))
+	cpu.mmu.WB(cpu.SP, uint8(cpu.PC))
 
-	cpu.PC = word
+	cpu.PC = nn
 
 	return 6
 }
@@ -2087,20 +2085,13 @@ func (m *instructions) call_cc_nn(cpu *CPU) uint32 {
 	return 3
 }
 
-/*
-0xC9 - RET: Return from function
-
-# Unconditional return from a function
-
-Machine Cycles: 4
-*/
 func (m *instructions) ret(cpu *CPU) uint32 {
 	lsb := cpu.mmu.RB(cpu.SP)
 	cpu.SP += 1
 	msb := cpu.mmu.RB(cpu.SP)
 	cpu.SP += 1
 
-	cpu.PC = uint16(msb)<<7 | uint16(lsb)
+	cpu.PC = uint16(msb)<<8 | uint16(lsb)
 
 	return 4
 }
@@ -2120,7 +2111,7 @@ func (m *instructions) ret_cc(cpu *CPU) uint32 {
 		msb := cpu.mmu.RB(cpu.SP)
 		cpu.SP += 1
 
-		cpu.PC = uint16(msb)<<7 | uint16(lsb)
+		cpu.PC = uint16(msb)<<8 | uint16(lsb)
 
 		return 5
 
@@ -2142,7 +2133,7 @@ func (m *instructions) reti(cpu *CPU) uint32 {
 	msb := cpu.mmu.RB(cpu.SP)
 	cpu.SP += 1
 
-	cpu.PC = uint16(msb)<<7 | uint16(lsb)
+	cpu.PC = uint16(msb)<<8 | uint16(lsb)
 	// TODO: create IME
 	//set IME =1
 
@@ -2165,7 +2156,7 @@ func (m *instructions) rst_n(cpu *CPU) uint32 {
 	cpu.SP -= 1
 	cpu.mmu.WB(cpu.SP, lsb)
 
-	result := uint16(msb)<<7 | uint16(n)
+	result := uint16(msb)<<8 | uint16(n)
 
 	cpu.PC = result
 

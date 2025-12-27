@@ -185,9 +185,9 @@ func (m *CPU) execInstruction(opcode byte) {
 	case 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x77:
 		ticks = m.ins.ld_HL_r(m, getRegister(m, opcode))
 	case 0x78, 0x79, 0x7A, 0x7B, 0x7C, 0x7D, 0x7F:
-		ticks = m.ins.ld_rr(m, &m.register.d, getRegister(m, opcode))
+		ticks = m.ins.ld_rr(m, &m.register.a, getRegister(m, opcode))
 	case 0x7E:
-		ticks = m.ins.ld_r_HL(m, &m.register.d)
+		ticks = m.ins.ld_r_HL(m, &m.register.a)
 	case 0x80:
 		ticks = m.ins.add_r(m)
 	case 0x86:
@@ -231,7 +231,7 @@ func (m *CPU) execInstruction(opcode byte) {
 	case 0xC4:
 		ticks = m.ins.call_cc_nn(m)
 	case 0xC5:
-		ticks = m.ins.ld_push_rr(m)
+		ticks = m.ins.ld_push_rr(m, &m.register.b, &m.register.c)
 	case 0xC6:
 		ticks = m.ins.add_n(m)
 	case 0xC9:
@@ -373,6 +373,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.call_nn(m)
 	case 0xCE:
 		ticks = m.ins.adc_n(m)
+	case 0xD5:
+		ticks = m.ins.ld_push_rr(m, &m.register.e, &m.register.e)
 	case 0xD6:
 		ticks = m.ins.sub_n(m)
 	case 0xDE:
@@ -383,6 +385,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ldh_n_A(m)
 	case 0xE2:
 		ticks = m.ins.ldh_C_A(m)
+	case 0xE5:
+		ticks = m.ins.ld_push_rr(m, &m.register.h, &m.register.l)
 	case 0xE6:
 		ticks = m.ins.and_n(m)
 	case 0xE8:
@@ -399,6 +403,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ldh_A_C(m)
 	case 0xF3:
 		ticks = m.ins.di(m)
+	case 0xF5:
+		ticks = m.ins.ld_push_rr(m, &m.register.a, &m.register.f)
 	case 0xF6:
 		ticks = m.ins.or_n(m)
 	case 0xF8:
@@ -413,27 +419,25 @@ func (m *CPU) execInstruction(opcode byte) {
 		fmt.Printf("opcode (0x%x) not implemented\n", opcode)
 	}
 
-	if m.PC > 0x209 && m.mmu.RB(m.PC) != 0x00 {
-		// fmt.Printf("A:%02x B:%02x C:%02x D:%02x E:%02x H:%02x L:%02x SP:%04x PC:%04x PCMEMEN:%02x, %02x, %02x, %02x\n",
-		// 	m.register.a,
-		// 	m.register.b,
-		// 	m.register.c,
-		// 	m.register.d,
-		// 	m.register.e,
-		// 	m.register.h,
-		// 	m.register.l,
-		// 	m.SP,
-		// 	m.PC,
-		// 	m.mmu.RB(m.PC),
-		// 	m.mmu.RB(m.PC+1),
-		// 	m.mmu.RB(m.PC+2),
-		// 	m.mmu.RB(m.PC+3))
-		//
-	}
-
 	if ticks != 0 {
 		m.doCycle(ticks)
 	}
+
+	fmt.Printf("A:%02x F:%02x B:%02x C:%02x D:%02x E:%02x H:%02x L:%02x SP:%04x PC:%04x PCMEM:%02x,%02x,%02x,%02x\n",
+		m.register.a,
+		m.register.f,
+		m.register.b,
+		m.register.c,
+		m.register.d,
+		m.register.e,
+		m.register.h,
+		m.register.l,
+		m.SP,
+		m.PC,
+		m.mmu.RB(m.PC),
+		m.mmu.RB(m.PC+1),
+		m.mmu.RB(m.PC+2),
+		m.mmu.RB(m.PC+3))
 
 }
 

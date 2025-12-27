@@ -40,9 +40,7 @@ func (m *MemoryManagementUnitSimple) Init(rom []byte) {
 		m.memory_arr[HRAM_START+i] = v
 	}
 
-	for i, v := range rom {
-		m.memory_arr[i] = v
-	}
+	copy(m.memory_arr[:], rom)
 }
 
 func (m *MemoryManagementUnitSimple) RB(address uint16) byte {
@@ -51,7 +49,7 @@ func (m *MemoryManagementUnitSimple) RB(address uint16) byte {
 
 func (m *MemoryManagementUnitSimple) WB(address uint16, value byte) {
 	if address == 0xFF02 || address == 0xFF01 {
-		fmt.Print(m.memory_arr[0xFF01])
+		fmt.Print("WRITE AT SERIAL PORT")
 	}
 	m.memory_arr[address] = value
 }
