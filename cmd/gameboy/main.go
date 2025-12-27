@@ -1,7 +1,8 @@
 package main
 
 import (
-	// "bufio"
+	"bufio"
+	"flag"
 	"fmt"
 	"os"
 
@@ -9,21 +10,27 @@ import (
 )
 
 func main() {
-	fmt.Println("cli/desktop version of gameboy emulator")
-	romPath := os.Args[1:]
+
+	romPtr := flag.String("rom", "", "rom to execute")
+	singleStepPtr := flag.Bool("single-step", false, "enable single step execution")
+
+	flag.Parse()
 
 	gb := gameboy.New()
-	gb.Init(romPath[0])
+	gb.Init(*romPtr)
 
-	// reader := bufio.NewReader(os.Stdin)
+	reader := bufio.NewReader(os.Stdin)
 
 	for {
-		// _, err := reader.ReadString('\n')
-		//
-		// if err != nil {
-		// 	fmt.Println("fail to read", err)
-		// 	return
-		// }
+		if *singleStepPtr {
+			_, err := reader.ReadString('\n')
+
+			if err != nil {
+				fmt.Println("fail to read", err)
+				return
+			}
+
+		}
 
 		// time.Sleep(100 * time.Millisecond)
 
