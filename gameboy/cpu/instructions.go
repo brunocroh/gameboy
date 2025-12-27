@@ -732,16 +732,14 @@ This instruction is basically identical to SUB r, but does not update the A regi
 
 Machine Cycles: 1
 */
-func (m *instructions) cp_r(cpu *CPU) uint32 {
+func (m *instructions) cp_A_r(cpu *CPU, r *uint8) uint32 {
 	a := cpu.register.a
-	b := cpu.register.b
+	v := a - *r
 
-	r := a - b
-
-	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("Z", v == 0x0)
 	cpu.register.setFlag("N", true)
-	cpu.register.setFlag("H", (a&0x0F) < (b&0x0F))
-	cpu.register.setFlag("C", uint16(a) < uint16(b))
+	cpu.register.setFlag("H", (a&0x0F) < (*r&0x0F))
+	cpu.register.setFlag("C", uint16(a) < uint16(*r))
 
 	return 1
 }
@@ -966,15 +964,12 @@ the result back into the A register.
 
 Machine Cycles: 1
 */
-func (m *instructions) or_r(cpu *CPU) uint32 {
-	a := cpu.register.a
-	b := cpu.register.b
+func (m *instructions) or_a_r(cpu *CPU, r *uint8) uint32 {
+	v := cpu.register.a | *r
 
-	r := a | b
+	cpu.register.a = v
 
-	cpu.register.a = r
-
-	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("Z", v == 0x0)
 	cpu.register.setFlag("N", false)
 	cpu.register.setFlag("H", false)
 	cpu.register.setFlag("C", false)
@@ -990,7 +985,7 @@ address specified by the 16-bit register HL, and stores the result back into the
 
 Machine Cycles: 2
 */
-func (m *instructions) or_HL(cpu *CPU) uint32 {
+func (m *instructions) or_a_HL(cpu *CPU) uint32 {
 	a := cpu.register.a
 	h := cpu.register.h
 	l := cpu.register.l

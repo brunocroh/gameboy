@@ -220,12 +220,12 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.xor_r(m, getRegister(m, opcode))
 	case 0xAE:
 		ticks = m.ins.xor_HL(m)
-	case 0xB0:
-		ticks = m.ins.or_r(m)
+	case 0xB0, 0xB1, 0xB2, 0xB3, 0xB4, 0xB5, 0xB7:
+		ticks = m.ins.or_a_r(m, getRegister(m, opcode))
 	case 0xB6:
-		ticks = m.ins.or_HL(m)
-	case 0xB8:
-		ticks = m.ins.cp_r(m)
+		ticks = m.ins.or_a_HL(m)
+	case 0xB8, 0xB9, 0xBA, 0xBB, 0xBC, 0xBD, 0xBF:
+		ticks = m.ins.cp_A_r(m, getRegister(m, opcode))
 	case 0xBE:
 		ticks = m.ins.cp_HL(m)
 	case 0xC0:
