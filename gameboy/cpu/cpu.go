@@ -69,7 +69,7 @@ func (m *CPU) execInstruction(opcode byte) {
 	case 0x02:
 		ticks = m.ins.ld_BC_A(m)
 	case 0x03:
-		ticks = m.ins.inc_rr(m)
+		ticks = m.ins.inc_rr(m, &m.register.b, &m.register.c)
 	case 0x04:
 		ticks = m.ins.inc_r(m, &m.register.b)
 	case 0x05:
@@ -100,6 +100,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ld_rr_nn(m, &m.register.d, &m.register.e)
 	case 0x12:
 		ticks = m.ins.ld_DE_A(m)
+	case 0x13:
+		ticks = m.ins.inc_rr(m, &m.register.d, &m.register.e)
 	case 0x14:
 		ticks = m.ins.inc_r(m, &m.register.d)
 	case 0x15:
@@ -122,6 +124,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ld_rr_nn(m, &m.register.h, &m.register.l)
 	case 0x22:
 		ticks = m.ins.ld_HLi_A(m)
+	case 0x23:
+		ticks = m.ins.inc_rr(m, &m.register.h, &m.register.l)
 	case 0x24:
 		ticks = m.ins.inc_r(m, &m.register.h)
 	case 0x25:
@@ -140,6 +144,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ld_SP_nn(m)
 	case 0x32:
 		ticks = m.ins.ld_HLd_A(m)
+	case 0x33:
+		ticks = m.ins.inc_sp(m)
 	case 0x34:
 		ticks = m.ins.inc_HL(m)
 	case 0x35:
@@ -150,6 +156,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.scf(m)
 	case 0x3A:
 		ticks = m.ins.ld_A_HLd(m)
+	case 0x3B:
+		ticks = m.ins.dec_sp(m)
 	case 0x3C:
 		ticks = m.ins.inc_r(m, &m.register.a)
 	case 0x3D:
@@ -223,7 +231,7 @@ func (m *CPU) execInstruction(opcode byte) {
 	case 0xC0:
 		ticks = m.ins.ret_cc(m)
 	case 0xC1:
-		ticks = m.ins.ld_pop_rr(m)
+		ticks = m.ins.ld_pop_rr(m, &m.register.b, &m.register.c)
 	case 0xC2:
 		ticks = m.ins.jp_cc_nn(m)
 	case 0xC3:
@@ -373,8 +381,10 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.call_nn(m)
 	case 0xCE:
 		ticks = m.ins.adc_n(m)
+	case 0xD1:
+		ticks = m.ins.ld_pop_rr(m, &m.register.d, &m.register.e)
 	case 0xD5:
-		ticks = m.ins.ld_push_rr(m, &m.register.e, &m.register.e)
+		ticks = m.ins.ld_push_rr(m, &m.register.d, &m.register.e)
 	case 0xD6:
 		ticks = m.ins.sub_n(m)
 	case 0xDE:
@@ -383,6 +393,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.rst_n(m)
 	case 0xE0:
 		ticks = m.ins.ldh_n_A(m)
+	case 0xE1:
+		ticks = m.ins.ld_pop_rr(m, &m.register.h, &m.register.l)
 	case 0xE2:
 		ticks = m.ins.ldh_C_A(m)
 	case 0xE5:
@@ -399,6 +411,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.jp_HL(m)
 	case 0xF0:
 		ticks = m.ins.ldh_A_n(m)
+	case 0xF1:
+		ticks = m.ins.ld_pop_rr(m, &m.register.a, &m.register.f)
 	case 0xF2:
 		ticks = m.ins.ldh_A_C(m)
 	case 0xF3:

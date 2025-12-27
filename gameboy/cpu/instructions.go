@@ -366,12 +366,12 @@ F register value, so all flags are changed based on the 8-bit data that is read 
 
 Machine Cycles: 3
 */
-func (m *instructions) ld_pop_rr(cpu *CPU) uint32 {
+func (m *instructions) ld_pop_rr(cpu *CPU, r1 *uint8, r2 *uint8) uint32 {
 	word := cpu.mmu.RW(cpu.SP)
 	cpu.SP += 2
 
-	cpu.register.b = uint8(word >> 8)
-	cpu.register.c = uint8(word & 0x00FF)
+	*r1 = uint8(word >> 8)
+	*r2 = uint8(word & 0x00FF)
 	return 3
 }
 
@@ -1176,16 +1176,13 @@ Increments data in the 16-bit register rr.
 
 Machine Cycles: 2
 */
-func (m *instructions) inc_rr(cpu *CPU) uint32 {
-	b := cpu.register.b
-	c := cpu.register.c
+func (m *instructions) inc_rr(cpu *CPU, r1 *uint8, r2 *uint8) uint32 {
+	rr := uint16(*r1)<<8 | uint16(*r2)
 
-	bc := uint16(b)<<8 | uint16(c)
+	rr += 1
 
-	bc += 1
-
-	cpu.register.b = uint8(bc >> 8)
-	cpu.register.c = uint8(b & 0x00FF)
+	*r1 = uint8(rr >> 8)
+	*r2 = uint8(rr & 0x00FF)
 
 	return 2
 }
@@ -2188,4 +2185,26 @@ Machine Cycles: 1
 func (m *instructions) di(cpu *CPU) uint32 {
 	cpu.interrupt.IME = false
 	return 1
+}
+
+/*
+0x33 - INC SP: Increment 16-bit SP
+
+Machine Cycles: 2
+*/
+func (m *instructions) inc_sp(cpu *CPU) uint32 {
+	cpu.SP += 1
+
+	return 2
+}
+
+/*
+0x3B - DEC SP: Decrement 16-bit SP
+
+Machine Cycles: 2
+*/
+func (m *instructions) dec_sp(cpu *CPU) uint32 {
+	cpu.SP += 1
+
+	return 2
 }
