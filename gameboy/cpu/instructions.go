@@ -2026,6 +2026,69 @@ func (m *instructions) jr_nz(cpu *CPU) uint32 {
 }
 
 /*
+0x30 - JR cc, e: Relative jump (conditional)
+
+Conditional jump to the relative address specified by the signed 8-bit operand e, depending on
+the condition cc.
+Note that the operand (relative address offset) is read even when the condition is false!
+
+Machine Cycles: 3 cc = true
+Machine Cycles: 2 cc = false
+*/
+func (m *instructions) jr_nc(cpu *CPU) uint32 {
+	n := cpu.mmu.RB(cpu.popPC())
+
+	if !cpu.register.getFlag("C") {
+		cpu.PC = uint16(int32(cpu.PC) + int32(int8(n)))
+		return 3
+	}
+
+	return 2
+}
+
+/*
+0x28 - JR cc, e: Relative jump (conditional)
+
+Conditional jump to the relative address specified by the signed 8-bit operand e, depending on
+the condition cc.
+Note that the operand (relative address offset) is read even when the condition is true!
+
+Machine Cycles: 3 cc = true
+Machine Cycles: 2 cc = false
+*/
+func (m *instructions) jr_z(cpu *CPU) uint32 {
+	n := cpu.mmu.RB(cpu.popPC())
+
+	if cpu.register.getFlag("Z") {
+		cpu.PC = uint16(int32(cpu.PC) + int32(int8(n)))
+		return 3
+	}
+
+	return 2
+}
+
+/*
+0x38 - JR cc, e: Relative jump (conditional)
+
+Conditional jump to the relative address specified by the signed 8-bit operand e, depending on
+the condition cc.
+Note that the operand (relative address offset) is read even when the condition is true!
+
+Machine Cycles: 3 cc = true
+Machine Cycles: 2 cc = false
+*/
+func (m *instructions) jr_c(cpu *CPU) uint32 {
+	n := cpu.mmu.RB(cpu.popPC())
+
+	if cpu.register.getFlag("C") {
+		cpu.PC = uint16(int32(cpu.PC) + int32(int8(n)))
+		return 3
+	}
+
+	return 2
+}
+
+/*
 0xCD - CALL nn: Call function
 
 Unconditional function call to the absolute address specified by the 16-bit operand nn.
@@ -2060,15 +2123,14 @@ func (m *instructions) call_cc_nn(cpu *CPU) uint32 {
 	lsb := cpu.mmu.RB(cpu.popPC())
 	msb := cpu.mmu.RB(cpu.popPC())
 
-	nn := uint16(msb) | uint16(lsb)
+	nn := uint16(msb)<<8 | uint16(lsb)
 
-	if cpu.register.getFlag("Z") {
+	if !cpu.register.getFlag("Z") {
+		cpu.SP -= 1
+		cpu.mmu.WB(cpu.SP, uint8(cpu.PC>>8))
 
 		cpu.SP -= 1
-		cpu.mmu.WB(cpu.SP, msb)
-
-		cpu.SP -= 1
-		cpu.mmu.WB(cpu.SP, lsb)
+		cpu.mmu.WB(cpu.SP, uint8(cpu.PC))
 
 		cpu.PC = nn
 		return 6

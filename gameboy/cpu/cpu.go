@@ -132,6 +132,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.dec_r(m, &m.register.h)
 	case 0x27:
 		ticks = m.ins.daa(m)
+	case 0x28:
+		ticks = m.ins.jr_z(m)
 	case 0x2A:
 		ticks = m.ins.ld_A_HLi(m)
 	case 0x2C:
@@ -140,6 +142,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.dec_r(m, &m.register.l)
 	case 0x2F:
 		ticks = m.ins.cpl(m)
+	case 0x30:
+		ticks = m.ins.jr_nc(m)
 	case 0x31:
 		ticks = m.ins.ld_SP_nn(m)
 	case 0x32:
@@ -154,6 +158,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ld_HL_n(m)
 	case 0x37:
 		ticks = m.ins.scf(m)
+	case 0x38:
+		ticks = m.ins.jr_c(m)
 	case 0x3A:
 		ticks = m.ins.ld_A_HLd(m)
 	case 0x3B:

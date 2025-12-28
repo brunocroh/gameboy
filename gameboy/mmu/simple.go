@@ -44,11 +44,19 @@ func (m *MemoryManagementUnitSimple) Init(rom []byte) {
 }
 
 func (m *MemoryManagementUnitSimple) RB(address uint16) byte {
+	// LCD is not implemented so return hardcoded value for it works
+	if address == 0xFF44 {
+		return 0x90
+	}
 	return m.memory_arr[address]
 }
 
 func (m *MemoryManagementUnitSimple) WB(address uint16, value byte) {
 	if address == 0xFF02 || address == 0xFF01 {
+		fmt.Print("WRITE AT SERIAL PORT")
+	}
+
+	if address == 0xFF44 || address == 0xFF01 {
 		fmt.Print("WRITE AT SERIAL PORT")
 	}
 	m.memory_arr[address] = value
