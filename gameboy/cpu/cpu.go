@@ -81,7 +81,7 @@ func (m *CPU) execInstruction(opcode byte) {
 	case 0x08:
 		ticks = m.ins.ld_nn_sp(m)
 	case 0x09:
-		ticks = m.ins.add_HL_rr(m)
+		ticks = m.ins.add_HL_rr(m, &m.register.b, &m.register.c)
 	case 0x0A:
 		ticks = m.ins.ld_A_BC(m)
 	case 0x0B:
@@ -106,10 +106,14 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.inc_r(m, &m.register.d)
 	case 0x15:
 		ticks = m.ins.dec_r(m, &m.register.d)
+	case 0x16:
+		ticks = m.ins.ld_r_n(m, &m.register.d)
 	case 0x17:
 		ticks = m.ins.rla(m)
 	case 0x18:
 		ticks = m.ins.jr_e(m)
+	case 0x19:
+		ticks = m.ins.add_HL_rr(m, &m.register.d, &m.register.e)
 	case 0x1A:
 		ticks = m.ins.ld_A_DE(m)
 	case 0x1C:
@@ -130,10 +134,14 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.inc_r(m, &m.register.h)
 	case 0x25:
 		ticks = m.ins.dec_r(m, &m.register.h)
+	case 0x26:
+		ticks = m.ins.ld_r_n(m, &m.register.h)
 	case 0x27:
 		ticks = m.ins.daa(m)
 	case 0x28:
 		ticks = m.ins.jr_z(m)
+	case 0x29:
+		ticks = m.ins.add_HL_rr(m, &m.register.h, &m.register.l)
 	case 0x2A:
 		ticks = m.ins.ld_A_HLi(m)
 	case 0x2C:
@@ -160,6 +168,10 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.scf(m)
 	case 0x38:
 		ticks = m.ins.jr_c(m)
+	case 0x39:
+		msb := uint8(m.SP >> 8)
+		lsb := uint8(m.SP)
+		ticks = m.ins.add_HL_rr(m, &msb, &lsb)
 	case 0x3A:
 		ticks = m.ins.ld_A_HLd(m)
 	case 0x3B:
@@ -235,7 +247,7 @@ func (m *CPU) execInstruction(opcode byte) {
 	case 0xBE:
 		ticks = m.ins.cp_HL(m)
 	case 0xC0:
-		ticks = m.ins.ret_cc(m)
+		ticks = m.ins.ret_cc(m, !m.register.getFlag("Z")) // NZ
 	case 0xC1:
 		ticks = m.ins.ld_pop_rr(m, &m.register.b, &m.register.c)
 	case 0xC2:
@@ -248,6 +260,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ld_push_rr(m, &m.register.b, &m.register.c)
 	case 0xC6:
 		ticks = m.ins.add_n(m)
+	case 0xC8:
+		ticks = m.ins.ret_cc(m, m.register.getFlag("Z")) // Z
 	case 0xC9:
 		ticks = m.ins.ret(m)
 	case 0xCB:
@@ -387,12 +401,16 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.call_nn(m)
 	case 0xCE:
 		ticks = m.ins.adc_n(m)
+	case 0xD0:
+		ticks = m.ins.ret_cc(m, !m.register.getFlag("C")) // NC
 	case 0xD1:
 		ticks = m.ins.ld_pop_rr(m, &m.register.d, &m.register.e)
 	case 0xD5:
 		ticks = m.ins.ld_push_rr(m, &m.register.d, &m.register.e)
 	case 0xD6:
 		ticks = m.ins.sub_n(m)
+	case 0xD8:
+		ticks = m.ins.ret_cc(m, m.register.getFlag("C")) // C
 	case 0xDE:
 		ticks = m.ins.sbc_n(m)
 	case 0xDF:

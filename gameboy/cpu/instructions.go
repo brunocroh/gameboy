@@ -137,7 +137,9 @@ Load to the 8-bit A register, data from the absolute address specified by the 16
 Machine Cycles: 4
 */
 func (m *instructions) ld_A_nn(cpu *CPU) uint32 {
-	addr := uint16(cpu.mmu.RB(cpu.popPC()))<<8 | uint16(cpu.mmu.RB(cpu.popPC()))
+	lsb := cpu.mmu.RB(cpu.popPC())
+	msb := cpu.mmu.RB(cpu.popPC())
+	addr := uint16(msb)<<8 | uint16(lsb)
 	cpu.register.a = cpu.mmu.RB(addr)
 	return 4
 }
@@ -150,7 +152,9 @@ Load to the absolute address specified by the 16-bit operand nn, data from the 8
 Machine Cycles: 4
 */
 func (m *instructions) ld_nn_A(cpu *CPU) uint32 {
-	addr := uint16(cpu.mmu.RB(cpu.popPC()))<<8 | uint16(cpu.mmu.RB(cpu.popPC()))
+	lsb := cpu.mmu.RB(cpu.popPC())
+	msb := cpu.mmu.RB(cpu.popPC())
+	addr := uint16(msb)<<8 | uint16(lsb)
 	cpu.mmu.WB(addr, cpu.register.a)
 	return 4
 }
@@ -874,7 +878,7 @@ func (m *instructions) dec_HL(cpu *CPU) uint32 {
 	cpu.mmu.WB(hl, r)
 
 	cpu.register.setFlag("Z", r == 0x0)
-	cpu.register.setFlag("N", false)
+	cpu.register.setFlag("N", true)
 	cpu.register.setFlag("H", (data&0x0F)-1 > 0x0F)
 
 	return 3
@@ -1211,20 +1215,17 @@ register pair.
 
 Machine Cycles: 2
 */
-func (m *instructions) add_HL_rr(cpu *CPU) uint32 {
-	b := cpu.register.b
-	c := cpu.register.c
-	bc := uint16(b)<<8 | uint16(c)
+func (m *instructions) add_HL_rr(cpu *CPU, r1 *uint8, r2 *uint8) uint32 {
+	rr := uint16(*r1)<<8 | uint16(*r2)
 
 	h := cpu.register.h
 	l := cpu.register.l
 	hl := uint16(h)<<8 | uint16(l)
 
-	r := hl + bc
-
+	r := hl + rr
 	cpu.register.setFlag("N", false)
-	cpu.register.setFlag("H", (bc&0x07FF)+(hl&0x07FF) > 0x07FF)
-	cpu.register.setFlag("C", bc > 0xFFFF-hl)
+	cpu.register.setFlag("H", (hl&0x0FFF)+(rr&0x0FFF) > 0x0FFF)
+	cpu.register.setFlag("C", rr > 0xFFFF-hl)
 
 	cpu.register.h = uint8(r >> 8)
 	cpu.register.l = uint8(r & 0x00FF)
@@ -1350,7 +1351,7 @@ Machine Cycles: 1
 func (m *instructions) rra(cpu *CPU) uint32 {
 	c := uint8(0)
 	if cpu.register.getFlag("C") {
-		c = 1
+		c = 0x80 // 10000000
 	}
 	a := cpu.register.a
 
@@ -2099,7 +2100,7 @@ func (m *instructions) call_nn(cpu *CPU) uint32 {
 	nn := cpu.rw(cpu.PC)
 
 	cpu.SP -= 1
-	cpu.mmu.WB(cpu.SP, uint8((cpu.PC)>>8))
+	cpu.mmu.WB(cpu.SP, uint8(cpu.PC>>8))
 
 	cpu.SP -= 1
 	cpu.mmu.WB(cpu.SP, uint8(cpu.PC))
@@ -2158,8 +2159,8 @@ Conditional return from a function, depending on the condition cc.
 Machine Cycles: 5 cc = true
 Machine Cycles: 2 cc = false
 */
-func (m *instructions) ret_cc(cpu *CPU) uint32 {
-	if cpu.register.getFlag("Z") {
+func (m *instructions) ret_cc(cpu *CPU, cc bool) uint32 {
+	if cc {
 		lsb := cpu.mmu.RB(cpu.SP)
 		cpu.SP += 1
 		msb := cpu.mmu.RB(cpu.SP)

@@ -52,13 +52,6 @@ func (m *MemoryManagementUnitSimple) RB(address uint16) byte {
 }
 
 func (m *MemoryManagementUnitSimple) WB(address uint16, value byte) {
-	if address == 0xFF02 || address == 0xFF01 {
-		fmt.Print("WRITE AT SERIAL PORT")
-	}
-
-	if address == 0xFF44 || address == 0xFF01 {
-		fmt.Print("WRITE AT SERIAL PORT")
-	}
 	m.memory_arr[address] = value
 }
 
