@@ -48,6 +48,7 @@ func (m *MemoryManagementUnitSimple) RB(address uint16) byte {
 	if address == 0xFF44 {
 		return 0x90
 	}
+
 	return m.memory_arr[address]
 }
 

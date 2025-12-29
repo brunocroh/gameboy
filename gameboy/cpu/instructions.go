@@ -20,7 +20,7 @@ Load to the 8-bit register r, data from the 8-bit register r'.
 
 Machine Cycles: 1
 */
-func (m *instructions) ld_rr(cpu *CPU, r1 *uint8, r2 *uint8) uint32 {
+func (m *instructions) ld_rr(r1 *uint8, r2 *uint8) uint32 {
 	*r1 = *r2
 	return 1
 }
@@ -316,7 +316,7 @@ func (m *instructions) ld_nn_sp(cpu *CPU) uint32 {
 	word := cpu.rw(cpu.PC)
 
 	sp_msb := uint8(cpu.SP >> 8)
-	sp_lsb := uint8(cpu.SP | 0x00FF)
+	sp_lsb := uint8(cpu.SP & 0x00FF)
 	cpu.mmu.WB(word, sp_lsb)
 	word += 1
 	cpu.mmu.WB(word, sp_msb)
@@ -2202,10 +2202,9 @@ Unconditional function call to the absolute fixed address defined by the opcode.
 
 Machine Cycles: 4
 */
-func (m *instructions) rst_n(cpu *CPU) uint32 {
+func (m *instructions) rst_n(cpu *CPU, n uint8) uint32 {
 	msb := uint8(cpu.PC)
-	lsb := uint8(cpu.PC >> 7)
-	n := uint8(0x18)
+	lsb := uint8(cpu.PC >> 8)
 	cpu.SP -= 1
 	cpu.mmu.WB(cpu.SP, msb)
 	cpu.SP -= 1
@@ -2262,7 +2261,7 @@ func (m *instructions) inc_sp(cpu *CPU) uint32 {
 Machine Cycles: 2
 */
 func (m *instructions) dec_sp(cpu *CPU) uint32 {
-	cpu.SP += 1
+	cpu.SP -= 1
 
 	return 2
 }
