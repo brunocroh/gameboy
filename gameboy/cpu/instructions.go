@@ -1974,13 +1974,13 @@ Note that the operand (absolute address) is read even when the condition is fals
 Machine Cycles: 4 cc = true
 Machine Cycles: 3 cc = false
 */
-func (m *instructions) jp_cc_nn(cpu *CPU) uint32 {
+func (m *instructions) jp_cc_nn(cpu *CPU, cc bool) uint32 {
 	lsb := cpu.mmu.RB(cpu.popPC())
 	msb := cpu.mmu.RB(cpu.popPC())
 
 	nn := uint16(msb)<<8 | uint16(lsb)
 
-	if cpu.register.getFlag("Z") {
+	if cc {
 		cpu.PC = nn
 		return 4
 	}

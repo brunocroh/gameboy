@@ -259,7 +259,7 @@ func (m *CPU) execInstruction(opcode byte) {
 	case 0xC1:
 		ticks = m.ins.ld_pop_rr(m, &m.register.b, &m.register.c)
 	case 0xC2:
-		ticks = m.ins.jp_cc_nn(m)
+		ticks = m.ins.jp_cc_nn(m, !m.register.getFlag("Z")) // NZ
 	case 0xC3:
 		ticks = m.ins.jp_nn(m)
 	case 0xC4:
@@ -272,6 +272,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ret_cc(m, m.register.getFlag("Z")) // Z
 	case 0xC9:
 		ticks = m.ins.ret(m)
+	case 0xCA:
+		ticks = m.ins.jp_cc_nn(m, m.register.getFlag("Z")) // Z
 	case 0xCB:
 		op := m.fetchOpcode()
 		switch op & 0xF0 {
@@ -415,12 +417,16 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ret_cc(m, !m.register.getFlag("C")) // NC
 	case 0xD1:
 		ticks = m.ins.ld_pop_rr(m, &m.register.d, &m.register.e)
+	case 0xD2:
+		ticks = m.ins.jp_cc_nn(m, !m.register.getFlag("C")) // NC
 	case 0xD5:
 		ticks = m.ins.ld_push_rr(m, &m.register.d, &m.register.e)
 	case 0xD6:
 		ticks = m.ins.sub_n(m)
 	case 0xD8:
 		ticks = m.ins.ret_cc(m, m.register.getFlag("C")) // C
+	case 0xDA:
+		ticks = m.ins.jp_cc_nn(m, m.register.getFlag("C")) // C
 	case 0xDE:
 		ticks = m.ins.sbc_n(m)
 	case 0xDF:
