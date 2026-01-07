@@ -85,7 +85,7 @@ func (m *CPU) execInstruction(opcode byte) {
 	case 0x0A:
 		ticks = m.ins.ld_A_BC(m)
 	case 0x0B:
-		ticks = m.ins.dec_rr(m)
+		ticks = m.ins.dec_rr(m, &m.register.b, &m.register.c)
 	case 0x0C:
 		ticks = m.ins.inc_r(m, &m.register.c)
 	case 0x0D:
@@ -116,6 +116,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.add_HL_rr(m, &m.register.d, &m.register.e)
 	case 0x1A:
 		ticks = m.ins.ld_A_DE(m)
+	case 0x1B:
+		ticks = m.ins.dec_rr(m, &m.register.d, &m.register.e)
 	case 0x1C:
 		ticks = m.ins.inc_r(m, &m.register.e)
 	case 0x1D:
@@ -146,6 +148,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.add_HL_rr(m, &m.register.h, &m.register.l)
 	case 0x2A:
 		ticks = m.ins.ld_A_HLi(m)
+	case 0x2B:
+		ticks = m.ins.dec_rr(m, &m.register.h, &m.register.l)
 	case 0x2C:
 		ticks = m.ins.inc_r(m, &m.register.l)
 	case 0x2D:
