@@ -263,7 +263,7 @@ func (m *CPU) execInstruction(opcode byte) {
 	case 0xC3:
 		ticks = m.ins.jp_nn(m)
 	case 0xC4:
-		ticks = m.ins.call_cc_nn(m)
+		ticks = m.ins.call_cc_nn(m, !m.register.getFlag("Z")) //NZ
 	case 0xC5:
 		ticks = m.ins.ld_push_rr(m, &m.register.b, &m.register.c)
 	case 0xC6:
@@ -407,6 +407,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		default:
 			fmt.Printf("CB opcode (0x%x) not implemented\n", op)
 		}
+	case 0xCC:
+		ticks = m.ins.call_cc_nn(m, m.register.getFlag("Z"))
 	case 0xCD:
 		ticks = m.ins.call_nn(m)
 	case 0xCE:
@@ -419,6 +421,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ld_pop_rr(m, &m.register.d, &m.register.e)
 	case 0xD2:
 		ticks = m.ins.jp_cc_nn(m, !m.register.getFlag("C")) // NC
+	case 0xD4:
+		ticks = m.ins.call_cc_nn(m, !m.register.getFlag("C")) // NC
 	case 0xD5:
 		ticks = m.ins.ld_push_rr(m, &m.register.d, &m.register.e)
 	case 0xD6:
@@ -427,6 +431,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ret_cc(m, m.register.getFlag("C")) // C
 	case 0xDA:
 		ticks = m.ins.jp_cc_nn(m, m.register.getFlag("C")) // C
+	case 0xDC:
+		ticks = m.ins.call_cc_nn(m, m.register.getFlag("C"))
 	case 0xDE:
 		ticks = m.ins.sbc_n(m)
 	case 0xDF:
