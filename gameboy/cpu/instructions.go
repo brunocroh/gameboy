@@ -389,12 +389,12 @@ Machine Cycles: 3
 */
 func (m *instructions) ld_HL_spe(cpu *CPU) uint32 {
 	e := cpu.mmu.RB(cpu.popPC())
-	result := cpu.SP + uint16(e)
+	result := uint16(int16(cpu.SP) + int16(int8(e)))
 
 	tmp := cpu.SP ^ uint16(e) ^ result
 
 	cpu.register.h = uint8(result >> 8)
-	cpu.register.l = uint8(result & 0x00FF)
+	cpu.register.l = uint8(result & 0xFF)
 
 	cpu.register.setFlag("Z", false)
 	cpu.register.setFlag("N", false)
@@ -1240,16 +1240,16 @@ the 16-bit value of the SP register.
 Machine Cycles: 4
 */
 func (m *instructions) add_sp_e(cpu *CPU) uint32 {
-	e := uint16(cpu.mmu.RB(cpu.popPC()))
+	e := cpu.mmu.RB(cpu.popPC())
 
-	r := cpu.SP + e
+	r := int16(cpu.SP) + int16(int8(e))
 
 	cpu.register.setFlag("Z", false)
 	cpu.register.setFlag("N", false)
-	cpu.register.setFlag("H", (cpu.SP&0x000F)+(e&0x000F) > 0x000F)
-	cpu.register.setFlag("C", (cpu.SP&0x00FF)+(e&0x00FF) > 0x00FF)
+	cpu.register.setFlag("H", (cpu.SP&0x0F)+(uint16(e)&0x0F) > 0x0F)
+	cpu.register.setFlag("C", (cpu.SP&0xFF)+(uint16(e)&0xFF) > 0xFF)
 
-	cpu.SP = r
+	cpu.SP = uint16(r)
 
 	return 4
 }
@@ -1998,7 +1998,9 @@ Machine Cycles: 3
 func (m *instructions) jr_e(cpu *CPU) uint32 {
 	e := cpu.mmu.RB(cpu.popPC())
 
-	cpu.PC = cpu.PC + uint16(e)
+	offset := int16(int8(e))
+
+	cpu.PC = uint16(int16(cpu.PC) + offset)
 
 	return 3
 }
@@ -2017,7 +2019,7 @@ func (m *instructions) jr_nz(cpu *CPU) uint32 {
 	n := cpu.mmu.RB(cpu.popPC())
 
 	if !cpu.register.getFlag("Z") {
-		cpu.PC = uint16(int32(cpu.PC) + int32(int8(n)))
+		cpu.PC = uint16(int16(cpu.PC) + int16(int8(n)))
 		return 3
 	}
 
@@ -2059,7 +2061,7 @@ func (m *instructions) jr_z(cpu *CPU) uint32 {
 	n := cpu.mmu.RB(cpu.popPC())
 
 	if cpu.register.getFlag("Z") {
-		cpu.PC = uint16(int32(cpu.PC) + int32(int8(n)))
+		cpu.PC = uint16(int16(cpu.PC) + int16(int8(n)))
 		return 3
 	}
 
@@ -2208,9 +2210,7 @@ func (m *instructions) rst_n(cpu *CPU, n uint8) uint32 {
 	cpu.SP -= 1
 	cpu.mmu.WB(cpu.SP, lsb)
 
-	result := uint16(msb)<<8 | uint16(n)
-
-	cpu.PC = result
+	cpu.PC = uint16(n)
 
 	return 4
 }

@@ -268,6 +268,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ld_push_rr(m, &m.register.b, &m.register.c)
 	case 0xC6:
 		ticks = m.ins.add_n(m)
+	case 0xC7:
+		ticks = m.ins.rst_n(m, 0x00)
 	case 0xC8:
 		ticks = m.ins.ret_cc(m, m.register.getFlag("Z")) // Z
 	case 0xC9:
@@ -429,6 +431,10 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.sub_n(m)
 	case 0xD8:
 		ticks = m.ins.ret_cc(m, m.register.getFlag("C")) // C
+	case 0xD7:
+		ticks = m.ins.rst_n(m, 0x10)
+	case 0xD9:
+		ticks = m.ins.reti(m)
 	case 0xDA:
 		ticks = m.ins.jp_cc_nn(m, m.register.getFlag("C")) // C
 	case 0xDC:
@@ -447,6 +453,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ld_push_rr(m, &m.register.h, &m.register.l)
 	case 0xE6:
 		ticks = m.ins.and_n(m)
+	case 0xE7:
+		ticks = m.ins.rst_n(m, 0x20)
 	case 0xE8:
 		ticks = m.ins.add_sp_e(m)
 	case 0xEA:
@@ -469,6 +477,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ld_push_rr(m, &m.register.a, &m.register.f)
 	case 0xF6:
 		ticks = m.ins.or_n(m)
+	case 0xF7:
+		ticks = m.ins.rst_n(m, 0x30)
 	case 0xF8:
 		ticks = m.ins.ld_HL_spe(m)
 	case 0xF9:
