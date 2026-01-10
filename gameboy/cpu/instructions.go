@@ -391,15 +391,13 @@ func (m *instructions) ld_HL_spe(cpu *CPU) uint32 {
 	e := cpu.mmu.RB(cpu.popPC())
 	result := uint16(int16(cpu.SP) + int16(int8(e)))
 
-	tmp := cpu.SP ^ uint16(e) ^ result
-
 	cpu.register.h = uint8(result >> 8)
 	cpu.register.l = uint8(result & 0xFF)
 
 	cpu.register.setFlag("Z", false)
 	cpu.register.setFlag("N", false)
-	cpu.register.setFlag("H", (tmp&0x10) == 0x10)
-	cpu.register.setFlag("C", (tmp&0x100) == 0x100)
+	cpu.register.setFlag("H", ((cpu.SP&0x000F)+(uint16(e)&0x000F)) > 0x000F)
+	cpu.register.setFlag("C", ((cpu.SP&0x00FF)+(uint16(e)&0x00FF)) > 0x00FF)
 	return 3
 }
 
