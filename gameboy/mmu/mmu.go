@@ -120,6 +120,9 @@ func (m *MemoryManagementUnitImpl) RB(address uint16) byte {
 }
 
 func (m *MemoryManagementUnitImpl) WB(address uint16, value byte) {
+	if address == 0x4244 {
+		fmt.Print("trying write")
+	}
 	if address < HRAM_END && address > HRAM_START {
 		m.hram[address] = value
 	}
@@ -128,17 +131,17 @@ func (m *MemoryManagementUnitImpl) WB(address uint16, value byte) {
 }
 
 func (m *MemoryManagementUnitImpl) RW(address uint16) uint16 {
-	var b1, b2 byte
+	var msb, lsb byte
 
 	if address < HRAM_END && address > HRAM_START {
-		b1 = m.hram[address]
-		b2 = m.hram[address+1]
+		lsb = m.hram[address]
+		msb = m.hram[address+1]
 	} else {
-		b1 = m.wram[address]
-		b2 = m.wram[address+1]
+		lsb = m.wram[address]
+		msb = m.wram[address+1]
 	}
 
-	return uint16(b1)<<8 | uint16(b2)
+	return uint16(msb)<<8 | uint16(lsb)
 }
 
 func (m *MemoryManagementUnitImpl) DoCycle(ticks uint32) {

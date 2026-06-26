@@ -246,7 +246,7 @@ func (m *instructions) ld_HLd_A(cpu *CPU) uint32 {
 	hl := uint16(cpu.register.h)<<8 | uint16(cpu.register.l)
 	cpu.mmu.WB(hl, cpu.register.a)
 
-	value := hl - 1
+	value := uint16(int16(hl) - 1)
 	cpu.register.h = uint8(value >> 8)
 	cpu.register.l = uint8(value & 0x00FF)
 
@@ -263,10 +263,11 @@ Machine Cycles: 2
 */
 func (m *instructions) ld_A_HLi(cpu *CPU) uint32 {
 	hl := uint16(cpu.register.h)<<8 | uint16(cpu.register.l)
+	cpu.register.a = cpu.mmu.RB(hl)
+
 	value := hl + 1
 	cpu.register.h = uint8(value >> 8)
 	cpu.register.l = uint8(value & 0x00FF)
-	cpu.register.a = cpu.mmu.RB(hl)
 	return 2
 }
 
@@ -2099,7 +2100,6 @@ func (m *instructions) call_nn(cpu *CPU) uint32 {
 
 	cpu.SP -= 1
 	cpu.mmu.WB(cpu.SP, uint8(cpu.PC>>8))
-
 	cpu.SP -= 1
 	cpu.mmu.WB(cpu.SP, uint8(cpu.PC))
 
@@ -2138,13 +2138,12 @@ func (m *instructions) call_cc_nn(cpu *CPU, cc bool) uint32 {
 	return 3
 }
 
+/*
+0xC9 - RET: return
+*/
 func (m *instructions) ret(cpu *CPU) uint32 {
-	lsb := cpu.mmu.RB(cpu.SP)
-	cpu.SP += 1
-	msb := cpu.mmu.RB(cpu.SP)
-	cpu.SP += 1
-
-	cpu.PC = uint16(msb)<<8 | uint16(lsb)
+	cpu.PC = cpu.mmu.RW(cpu.SP)
+	cpu.SP += 2
 
 	return 4
 }
@@ -2159,12 +2158,8 @@ Machine Cycles: 2 cc = false
 */
 func (m *instructions) ret_cc(cpu *CPU, cc bool) uint32 {
 	if cc {
-		lsb := cpu.mmu.RB(cpu.SP)
-		cpu.SP += 1
-		msb := cpu.mmu.RB(cpu.SP)
-		cpu.SP += 1
-
-		cpu.PC = uint16(msb)<<8 | uint16(lsb)
+		cpu.PC = cpu.mmu.RW(cpu.SP)
+		cpu.SP += 2
 
 		return 5
 
@@ -2181,12 +2176,8 @@ Unconditional return from a function. Also enables interrupts by setting IME=1.
 Machine Cycles: 4
 */
 func (m *instructions) reti(cpu *CPU) uint32 {
-	lsb := cpu.mmu.RB(cpu.SP)
-	cpu.SP += 1
-	msb := cpu.mmu.RB(cpu.SP)
-	cpu.SP += 1
-
-	cpu.PC = uint16(msb)<<8 | uint16(lsb)
+	cpu.PC = cpu.mmu.RW(cpu.SP)
+	cpu.SP += 2
 	// TODO: create IME
 	//set IME =1
 
@@ -2201,8 +2192,9 @@ Unconditional function call to the absolute fixed address defined by the opcode.
 Machine Cycles: 4
 */
 func (m *instructions) rst_n(cpu *CPU, n uint8) uint32 {
-	msb := uint8(cpu.PC)
-	lsb := uint8(cpu.PC >> 8)
+	msb := uint8(cpu.PC >> 8)
+	lsb := uint8(cpu.PC)
+
 	cpu.SP -= 1
 	cpu.mmu.WB(cpu.SP, msb)
 	cpu.SP -= 1

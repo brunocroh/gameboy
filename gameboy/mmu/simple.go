@@ -57,10 +57,10 @@ func (m *MemoryManagementUnitSimple) WB(address uint16, value byte) {
 }
 
 func (m *MemoryManagementUnitSimple) RW(address uint16) uint16 {
-	var b1 = m.memory_arr[address]
-	var b2 = m.memory_arr[address+1]
+	var lsb = m.memory_arr[address]
+	var msb = m.memory_arr[address+1]
 
-	return uint16(b1) | uint16(b2)<<8
+	return uint16(msb)<<8 | uint16(lsb)
 }
 
 func (m *MemoryManagementUnitSimple) DoCycle(ticks uint32) {
