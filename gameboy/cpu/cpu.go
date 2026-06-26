@@ -257,7 +257,7 @@ func (m *CPU) execInstruction(opcode byte) {
 	case 0xC0:
 		ticks = m.ins.ret_cc(m, !m.register.getFlag("Z")) // NZ
 	case 0xC1:
-		ticks = m.ins.ld_pop_rr(m, &m.register.b, &m.register.c)
+		ticks = m.ins.ld_pop_rr(m, &m.register.b, &m.register.c, false)
 	case 0xC2:
 		ticks = m.ins.jp_cc_nn(m, !m.register.getFlag("Z")) // NZ
 	case 0xC3:
@@ -420,7 +420,7 @@ func (m *CPU) execInstruction(opcode byte) {
 	case 0xD0:
 		ticks = m.ins.ret_cc(m, !m.register.getFlag("C")) // NC
 	case 0xD1:
-		ticks = m.ins.ld_pop_rr(m, &m.register.d, &m.register.e)
+		ticks = m.ins.ld_pop_rr(m, &m.register.d, &m.register.e, false)
 	case 0xD2:
 		ticks = m.ins.jp_cc_nn(m, !m.register.getFlag("C")) // NC
 	case 0xD4:
@@ -446,7 +446,7 @@ func (m *CPU) execInstruction(opcode byte) {
 	case 0xE0:
 		ticks = m.ins.ldh_n_A(m)
 	case 0xE1:
-		ticks = m.ins.ld_pop_rr(m, &m.register.h, &m.register.l)
+		ticks = m.ins.ld_pop_rr(m, &m.register.h, &m.register.l, false)
 	case 0xE2:
 		ticks = m.ins.ldh_C_A(m)
 	case 0xE5:
@@ -468,7 +468,7 @@ func (m *CPU) execInstruction(opcode byte) {
 	case 0xF0:
 		ticks = m.ins.ldh_A_n(m)
 	case 0xF1:
-		ticks = m.ins.ld_pop_rr(m, &m.register.a, &m.register.f)
+		ticks = m.ins.ld_pop_rr(m, &m.register.a, &m.register.f, true) // the lower nible of F is always zero
 	case 0xF2:
 		ticks = m.ins.ldh_A_C(m)
 	case 0xF3:

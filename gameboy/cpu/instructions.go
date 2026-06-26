@@ -371,12 +371,17 @@ F register value, so all flags are changed based on the 8-bit data that is read 
 
 Machine Cycles: 3
 */
-func (m *instructions) ld_pop_rr(cpu *CPU, r1 *uint8, r2 *uint8) uint32 {
+func (m *instructions) ld_pop_rr(cpu *CPU, r1 *uint8, r2 *uint8, removeLowerNibble bool) uint32 {
 	word := cpu.mmu.RW(cpu.SP)
 	cpu.SP += 2
 
+	lowerMask := uint16(0x00FF)
+	if removeLowerNibble {
+		lowerMask = 0x00F0
+	}
+
 	*r1 = uint8(word >> 8)
-	*r2 = uint8(word & 0x00FF)
+	*r2 = uint8(word & lowerMask)
 	return 3
 }
 
