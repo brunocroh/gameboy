@@ -37,16 +37,16 @@ func (m *CPU) Init() {
 }
 
 func (m *CPU) Cycle() {
-	opcode := m.fetchOpcode()
-
-	interruptOutput := m.interrupt.handleInterrupt(m.PC)
-
-	m.doCycle(1)
+	interruptOutput := m.interrupt.handleInterrupt(m)
 	if interruptOutput != 0 {
+		m.doCycle(interruptOutput)
 		return
 	}
 
+	opcode := m.fetchOpcode()
+
 	m.execInstruction(opcode)
+	m.interrupt.updateIME()
 }
 
 func (m *CPU) popPC() uint16 {
@@ -218,12 +218,17 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ld_r_HL(m, &m.register.l)
 	case 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x77:
 		ticks = m.ins.ld_HL_r(m, getRegister(m, opcode))
+	case 0x76:
+		m.interrupt.Halt = 1
+		ticks = 1
 	case 0x78, 0x79, 0x7A, 0x7B, 0x7C, 0x7D, 0x7F:
 		ticks = m.ins.ld_rr(&m.register.a, getRegister(m, opcode))
 	case 0x7E:
 		ticks = m.ins.ld_r_HL(m, &m.register.a)
 	case 0x80:
 		ticks = m.ins.add_r(m)
+	case 0x81:
+		// implement add
 	case 0x86:
 		ticks = m.ins.add_HL(m)
 	case 0x88:
@@ -485,6 +490,8 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ld_sp_HL(m)
 	case 0xFA:
 		ticks = m.ins.ld_A_nn(m)
+	case 0xFB:
+		ticks = m.ins.ei(m)
 	case 0xFE:
 		ticks = m.ins.cp_n(m)
 	case 0xFF:

@@ -33,8 +33,8 @@ func (m *Timer) Init() {
 	m.Interrupt = 0
 }
 
-func IsTimerAddress(address uint16) bool {
-	if address >= DIV || address <= TAC {
+func (m *Timer) IsTimerAddress(address uint16) bool {
+	if address >= DIV && address <= TAC {
 		return true
 	}
 	return false

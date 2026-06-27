@@ -107,7 +107,7 @@ func (m *MemoryManagementUnitImpl) RB(address uint16) byte {
 	case 0xD000:
 		return m.wram[address]
 	case 0xF000:
-		if IsTimerAddress(address) {
+		if m.timer.IsTimerAddress(address) {
 			return m.timer.read(address)
 		}
 

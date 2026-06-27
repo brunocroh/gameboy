@@ -44,16 +44,24 @@ func (m *MemoryManagementUnitSimple) Init(rom []byte) {
 }
 
 func (m *MemoryManagementUnitSimple) RB(address uint16) byte {
+	switch address {
 	// LCD is not implemented so return hardcoded value for it works
-	if address == 0xFF44 {
+	case 0xFF44:
 		return 0x90
+	case 0xFF04, 0xFF05, 0xFF06, 0xFF07:
+		return m.timer.read(address)
+	default:
+		return m.memory_arr[address]
 	}
-
-	return m.memory_arr[address]
 }
 
 func (m *MemoryManagementUnitSimple) WB(address uint16, value byte) {
-	m.memory_arr[address] = value
+	switch address {
+	case 0xFF04, 0xFF05, 0xFF06, 0xFF07:
+		m.timer.write(address, value)
+	default:
+		m.memory_arr[address] = value
+	}
 }
 
 func (m *MemoryManagementUnitSimple) RW(address uint16) uint16 {
@@ -65,4 +73,8 @@ func (m *MemoryManagementUnitSimple) RW(address uint16) uint16 {
 
 func (m *MemoryManagementUnitSimple) DoCycle(ticks uint32) {
 	m.timer.DoCycle(ticks)
+	if m.timer.Interrupt != 0 {
+		m.memory_arr[0xFF0F] |= m.timer.Interrupt
+		m.timer.Interrupt = 0
+	}
 }

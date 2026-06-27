@@ -1,9 +1,5 @@
 package cpu
 
-import (
-	"fmt"
-)
-
 type instructions struct {
 }
 
@@ -395,7 +391,7 @@ Machine Cycles: 3
 */
 func (m *instructions) ld_HL_spe(cpu *CPU) uint32 {
 	e := cpu.mmu.RB(cpu.popPC())
-	result := uint16(int16(cpu.SP) + int16(int8(e)))
+	result := uint16(int32(cpu.SP) + int32(int8(e)))
 
 	cpu.register.h = uint8(result >> 8)
 	cpu.register.l = uint8(result & 0xFF)
@@ -854,7 +850,7 @@ Machine Cycles: 1
 func (m *instructions) dec_r(cpu *CPU, r *uint8) uint32 {
 	v := *r
 
-	*r = v - 1
+	*r = uint8(uint16(v) - 1)
 
 	cpu.register.setFlag("Z", *r == 0x0)
 	cpu.register.setFlag("N", true)
@@ -1150,8 +1146,40 @@ func (m *instructions) scf(cpu *CPU) uint32 {
 
 Machine Cycles: 1
 */
-func (m *instructions) daa(_ *CPU) uint32 {
-	fmt.Println("NOT IMPLEMENTED")
+func (m *instructions) daa(cpu *CPU) uint32 {
+	adjustment := uint8(0x0)
+
+	carry := cpu.register.getFlag("C")
+
+	if cpu.register.getFlag("N") {
+		if cpu.register.getFlag("H") {
+			adjustment += 0x6
+
+		}
+		if carry {
+			adjustment += 0x60
+		}
+
+		cpu.register.a -= adjustment
+	} else {
+		if cpu.register.getFlag("H") || cpu.register.a&0xF > 0x9 {
+			adjustment += 0x6
+		}
+
+		if carry || cpu.register.a > 0x99 {
+			carry = true
+			adjustment += 0x60
+		}
+
+		cpu.register.a += adjustment
+
+	}
+
+	resultIsZero := cpu.register.a == 0x0
+
+	cpu.register.setFlag("C", carry)
+	cpu.register.setFlag("Z", resultIsZero)
+	cpu.register.setFlag("H", false)
 	return 1
 }
 
@@ -2183,8 +2211,8 @@ Machine Cycles: 4
 func (m *instructions) reti(cpu *CPU) uint32 {
 	cpu.PC = cpu.mmu.RW(cpu.SP)
 	cpu.SP += 2
-	// TODO: create IME
-	//set IME =1
+	cpu.interrupt.IME = true
+	cpu.interrupt.EI = 0
 
 	return 4
 }
@@ -2233,8 +2261,18 @@ instruction if any
 Machine Cycles: 1
 */
 func (m *instructions) di(cpu *CPU) uint32 {
-	cpu.interrupt.IME = false
-	return 1
+	return cpu.interrupt.Disable()
+}
+
+/*
+0xF3 - EI: Enable Interrupts
+
+Enable interrupt handling by setting IME=1
+
+Machine Cycles: 1
+*/
+func (m *instructions) ei(cpu *CPU) uint32 {
+	return cpu.interrupt.Enable()
 }
 
 /*
