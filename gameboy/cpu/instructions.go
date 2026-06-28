@@ -412,17 +412,14 @@ adds to the 8-bit A register, the 8-bit register r, and stores the result back i
 
 Machine Cycles: 1
 */
-func (m *instructions) add_r(cpu *CPU) uint32 {
-	a := cpu.register.a
-	b := cpu.register.b
-
-	sum := a + b
-	cpu.register.a = sum
+func (m *instructions) add_r(cpu *CPU, r *uint8) uint32 {
+	sum := cpu.register.a + *r
 
 	cpu.register.setFlag("Z", sum == 0x0)
 	cpu.register.setFlag("N", false)
-	cpu.register.setFlag("H", (a&0xF)+(b&0xF) > 0xF)
-	cpu.register.setFlag("C", uint16(a)+uint16(b) > 0xFF)
+	cpu.register.setFlag("H", (cpu.register.a&0xF)+(*r&0xF) > 0xF)
+	cpu.register.setFlag("C", uint16(cpu.register.a)+uint16(*r) > 0xFF)
+	cpu.register.a = sum
 
 	return 1
 }
@@ -481,23 +478,21 @@ into the A register.
 
 Machine Cycles: 1
 */
-func (m *instructions) adc_r(cpu *CPU) uint32 {
+func (m *instructions) adc_r(cpu *CPU, r *uint8) uint32 {
 	c := uint8(0)
 	if cpu.register.getFlag("C") {
 		c = 1
 	}
 
 	a := cpu.register.a
-	b := cpu.register.b
 
-	sum := a + b + c
-
-	cpu.register.a = sum
+	sum := a + *r + c
 
 	cpu.register.setFlag("Z", sum == 0x0)
 	cpu.register.setFlag("N", false)
-	cpu.register.setFlag("H", (a&0xF)+(b&0xF)+c > 0xF)
-	cpu.register.setFlag("C", uint16(a)+uint16(b)+uint16(c) > 0xFF)
+	cpu.register.setFlag("H", (a&0xF)+(*r&0xF)+c > 0xF)
+	cpu.register.setFlag("C", uint16(a)+uint16(*r)+uint16(c) > 0xFF)
+	cpu.register.a = sum
 
 	return 1
 }

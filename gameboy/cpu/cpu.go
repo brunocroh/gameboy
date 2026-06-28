@@ -226,15 +226,37 @@ func (m *CPU) execInstruction(opcode byte) {
 	case 0x7E:
 		ticks = m.ins.ld_r_HL(m, &m.register.a)
 	case 0x80:
-		ticks = m.ins.add_r(m)
+		ticks = m.ins.add_r(m, &m.register.b)
 	case 0x81:
-		// implement add
+		ticks = m.ins.add_r(m, &m.register.c)
+	case 0x82:
+		ticks = m.ins.add_r(m, &m.register.d)
+	case 0x83:
+		ticks = m.ins.add_r(m, &m.register.e)
+	case 0x84:
+		ticks = m.ins.add_r(m, &m.register.h)
+	case 0x85:
+		ticks = m.ins.add_r(m, &m.register.l)
 	case 0x86:
 		ticks = m.ins.add_HL(m)
+	case 0x87:
+		ticks = m.ins.add_r(m, &m.register.a)
 	case 0x88:
-		ticks = m.ins.adc_r(m)
+		ticks = m.ins.adc_r(m, &m.register.b)
+	case 0x89:
+		ticks = m.ins.adc_r(m, &m.register.c)
+	case 0x8A:
+		ticks = m.ins.adc_r(m, &m.register.d)
+	case 0x8B:
+		ticks = m.ins.adc_r(m, &m.register.e)
+	case 0x8C:
+		ticks = m.ins.adc_r(m, &m.register.h)
+	case 0x8D:
+		ticks = m.ins.adc_r(m, &m.register.l)
 	case 0x8E:
 		ticks = m.ins.adc_HL(m)
+	case 0x8F:
+		ticks = m.ins.adc_r(m, &m.register.a)
 	case 0x90:
 		ticks = m.ins.sub_r(m)
 	case 0x96:
