@@ -225,72 +225,24 @@ func (m *CPU) execInstruction(opcode byte) {
 		ticks = m.ins.ld_rr(&m.register.a, getRegister(m, opcode))
 	case 0x7E:
 		ticks = m.ins.ld_r_HL(m, &m.register.a)
-	case 0x80:
-		ticks = m.ins.add_r(m, &m.register.b)
-	case 0x81:
-		ticks = m.ins.add_r(m, &m.register.c)
-	case 0x82:
-		ticks = m.ins.add_r(m, &m.register.d)
-	case 0x83:
-		ticks = m.ins.add_r(m, &m.register.e)
-	case 0x84:
-		ticks = m.ins.add_r(m, &m.register.h)
-	case 0x85:
-		ticks = m.ins.add_r(m, &m.register.l)
+	case 0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x87:
+		ticks = m.ins.add_r(m, getRegister(m, opcode))
 	case 0x86:
 		ticks = m.ins.add_HL(m)
-	case 0x87:
-		ticks = m.ins.add_r(m, &m.register.a)
-	case 0x88:
-		ticks = m.ins.adc_r(m, &m.register.b)
-	case 0x89:
-		ticks = m.ins.adc_r(m, &m.register.c)
-	case 0x8A:
-		ticks = m.ins.adc_r(m, &m.register.d)
-	case 0x8B:
-		ticks = m.ins.adc_r(m, &m.register.e)
-	case 0x8C:
-		ticks = m.ins.adc_r(m, &m.register.h)
-	case 0x8D:
-		ticks = m.ins.adc_r(m, &m.register.l)
+	case 0x88, 0x89, 0x8A, 0x8B, 0x8C, 0x8D, 0x8F:
+		ticks = m.ins.adc_r(m, getRegister(m, opcode))
 	case 0x8E:
 		ticks = m.ins.adc_HL(m)
-	case 0x8F:
-		ticks = m.ins.adc_r(m, &m.register.a)
-	case 0x90:
-		ticks = m.ins.sub_r(m, &m.register.b)
-	case 0x91:
-		ticks = m.ins.sub_r(m, &m.register.c)
-	case 0x92:
-		ticks = m.ins.sub_r(m, &m.register.d)
-	case 0x93:
-		ticks = m.ins.sub_r(m, &m.register.e)
-	case 0x94:
-		ticks = m.ins.sub_r(m, &m.register.h)
-	case 0x95:
-		ticks = m.ins.sub_r(m, &m.register.l)
+	case 0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x97:
+		ticks = m.ins.sub_r(m, getRegister(m, opcode))
 	case 0x96:
 		ticks = m.ins.sub_HL(m)
-	case 0x97:
-		ticks = m.ins.sub_r(m, &m.register.a)
-	case 0x98:
-		ticks = m.ins.sbc_r(m, &m.register.b)
-	case 0x99:
-		ticks = m.ins.sbc_r(m, &m.register.c)
-	case 0x9A:
-		ticks = m.ins.sbc_r(m, &m.register.d)
-	case 0x9B:
-		ticks = m.ins.sbc_r(m, &m.register.e)
-	case 0x9C:
-		ticks = m.ins.sbc_r(m, &m.register.h)
-	case 0x9D:
-		ticks = m.ins.sbc_r(m, &m.register.l)
+	case 0x98, 0x99, 0x9A, 0x9B, 0x9C, 0x9D, 0x9F:
+		ticks = m.ins.sbc_r(m, getRegister(m, opcode))
 	case 0x9E:
 		ticks = m.ins.sbc_HL(m)
-	case 0x9F:
-		ticks = m.ins.sbc_r(m, &m.register.a)
-	case 0xA0:
-		ticks = m.ins.and_r(m)
+	case 0xA0, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA7:
+		ticks = m.ins.and_r(m, getRegister(m, opcode))
 	case 0xA6:
 		ticks = m.ins.and_HL(m)
 	case 0xA8, 0xA9, 0xAA, 0xAB, 0xAC, 0xAD, 0xAF:
@@ -446,16 +398,116 @@ func (m *CPU) execInstruction(opcode byte) {
 
 			}
 		case 0x80:
-			if op == 0x86 {
-				ticks = m.ins.res_b_HL(m)
+			if (op & 0xF) < 0x8 {
+				if (op & 0xF) == 0x6 {
+					ticks = m.ins.res_u3_HL(m, 0)
+				} else {
+					ticks = m.ins.res_u3_r(m, 0, getRegister(m, op))
+				}
 			} else {
-				ticks = m.ins.res_b_r(m, getRegister(m, op))
+				if (op & 0xF) == 0xE {
+					ticks = m.ins.res_u3_HL(m, 1)
+				} else {
+					ticks = m.ins.res_u3_r(m, 1, getRegister(m, op))
+				}
+			}
+		case 0x90:
+			if (op & 0xF) < 0x8 {
+				if (op & 0xF) == 0x6 {
+					ticks = m.ins.res_u3_HL(m, 2)
+				} else {
+					ticks = m.ins.res_u3_r(m, 2, getRegister(m, op))
+				}
+			} else {
+				if (op & 0xF) == 0xE {
+					ticks = m.ins.res_u3_HL(m, 3)
+				} else {
+					ticks = m.ins.res_u3_r(m, 3, getRegister(m, op))
+				}
+			}
+		case 0xA0:
+			if (op & 0xF) < 0x8 {
+				if (op & 0xF) == 0x6 {
+					ticks = m.ins.res_u3_HL(m, 4)
+				} else {
+					ticks = m.ins.res_u3_r(m, 4, getRegister(m, op))
+				}
+			} else {
+				if (op & 0xF) == 0xE {
+					ticks = m.ins.res_u3_HL(m, 5)
+				} else {
+					ticks = m.ins.res_u3_r(m, 5, getRegister(m, op))
+				}
+			}
+		case 0xB0:
+			if (op & 0xF) < 0x8 {
+				if (op & 0xF) == 0x6 {
+					ticks = m.ins.res_u3_HL(m, 6)
+				} else {
+					ticks = m.ins.res_u3_r(m, 6, getRegister(m, op))
+				}
+			} else {
+				if (op & 0xF) == 0xE {
+					ticks = m.ins.res_u3_HL(m, 7)
+				} else {
+					ticks = m.ins.res_u3_r(m, 7, getRegister(m, op))
+				}
 			}
 		case 0xC0:
-			if op == 0xC6 {
-				ticks = m.ins.set_b_HL(m)
+			if (op & 0xF) < 0x8 {
+				if (op & 0xF) == 0x6 {
+					ticks = m.ins.set_b_HL(m, 0)
+				} else {
+					ticks = m.ins.set_b_r(m, 0, getRegister(m, op))
+				}
 			} else {
-				ticks = m.ins.set_b_r(m, getRegister(m, op))
+				if (op & 0xF) == 0xE {
+					ticks = m.ins.set_b_HL(m, 1)
+				} else {
+					ticks = m.ins.set_b_r(m, 1, getRegister(m, op))
+				}
+			}
+		case 0xD0:
+			if (op & 0xF) < 0x8 {
+				if (op & 0xF) == 0x6 {
+					ticks = m.ins.set_b_HL(m, 2)
+				} else {
+					ticks = m.ins.set_b_r(m, 2, getRegister(m, op))
+				}
+			} else {
+				if (op & 0xF) == 0xE {
+					ticks = m.ins.set_b_HL(m, 3)
+				} else {
+					ticks = m.ins.set_b_r(m, 3, getRegister(m, op))
+				}
+			}
+		case 0xE0:
+			if (op & 0xF) < 0x8 {
+				if (op & 0xF) == 0x6 {
+					ticks = m.ins.set_b_HL(m, 4)
+				} else {
+					ticks = m.ins.set_b_r(m, 4, getRegister(m, op))
+				}
+			} else {
+				if (op & 0xF) == 0xE {
+					ticks = m.ins.set_b_HL(m, 5)
+				} else {
+					ticks = m.ins.set_b_r(m, 5, getRegister(m, op))
+				}
+			}
+		case 0xF0:
+			if (op & 0xF) < 0x8 {
+				if (op & 0xF) == 0x6 {
+					ticks = m.ins.set_b_HL(m, 6)
+				} else {
+					ticks = m.ins.set_b_r(m, 6, getRegister(m, op))
+				}
+			} else {
+				if (op & 0xF) == 0xE {
+					ticks = m.ins.set_b_HL(m, 7)
+				} else {
+					ticks = m.ins.set_b_r(m, 7, getRegister(m, op))
+				}
 			}
 		default:
 			fmt.Printf("CB opcode (0x%x) not implemented\n", op)

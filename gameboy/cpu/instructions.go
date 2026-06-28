@@ -884,18 +884,17 @@ stores the result back into the A register.
 
 Machine Cycles: 1
 */
-func (m *instructions) and_r(cpu *CPU) uint32 {
+func (m *instructions) and_r(cpu *CPU, r *uint8) uint32 {
 	a := cpu.register.a
-	b := cpu.register.b
 
-	r := a & b
+	res := a & *r
 
-	cpu.register.a = r
-
-	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("Z", res == 0x0)
 	cpu.register.setFlag("N", false)
 	cpu.register.setFlag("H", true)
 	cpu.register.setFlag("C", false)
+
+	cpu.register.a = res
 
 	return 1
 }
@@ -1325,7 +1324,7 @@ func (m *instructions) rrca(cpu *CPU) uint32 {
 	cpu.register.setFlag("H", false)
 	cpu.register.setFlag("C", b0 != 0)
 
-	cpu.register.a = a>>1 | b0
+	cpu.register.a = a>>1 | (b0 << 7)
 
 	return 1
 }
@@ -1402,12 +1401,14 @@ func (m *instructions) rlc_r(cpu *CPU, register *uint8) uint32 {
 
 	b7 := (r & (1 << 7)) >> 7
 
-	cpu.register.setFlag("Z", false)
+	res := r<<1 | b7
+
+	cpu.register.setFlag("Z", res == 0)
 	cpu.register.setFlag("N", false)
 	cpu.register.setFlag("H", false)
 	cpu.register.setFlag("C", b7 != 0)
 
-	*register = r<<1 | b7
+	*register = res
 
 	return 2
 }
@@ -1454,13 +1455,14 @@ func (m *instructions) rrc_r(cpu *CPU, register *uint8) uint32 {
 	r := *register
 
 	b0 := (r & (0x01 << 0))
+	res := (r >> 1) | (b0 << 7)
 
-	cpu.register.setFlag("Z", false)
+	cpu.register.setFlag("Z", res == 0)
 	cpu.register.setFlag("N", false)
 	cpu.register.setFlag("H", false)
 	cpu.register.setFlag("C", b0 != 0)
 
-	*register = r>>1 | b0
+	*register = res
 
 	return 2
 }
@@ -1847,11 +1849,9 @@ The zero flag is set to 1 if the chosen bit is 0, and 0 otherwise.
 Machine Cycles: 2
 */
 func (m *instructions) bit_u3_r(cpu *CPU, u3 byte, register *uint8) uint32 {
-	// maybe add a valitation to check if u3 is 7 or less
-
 	r := *register
 
-	b0 := r << (1 << u3)
+	b0 := r & (1 << u3)
 
 	cpu.register.setFlag("Z", b0 == 0)
 	cpu.register.setFlag("N", false)
@@ -1893,10 +1893,10 @@ func (m *instructions) bit_u3_HL(cpu *CPU, u3 byte) uint32 {
 
 Machine Cycles: 2
 */
-func (m *instructions) res_b_r(_ *CPU, register *uint8) uint32 {
+func (m *instructions) res_u3_r(_ *CPU, bit uint8, register *uint8) uint32 {
 	r := *register
 
-	*register = r & ^uint8(1<<0)
+	*register = r & ^uint8(1<<bit)
 
 	return 2
 }
@@ -1908,14 +1908,14 @@ Resets the bit b of the 8-bit data at the absolute address specified by the 16-b
 
 Machine Cycles: 4
 */
-func (m *instructions) res_b_HL(cpu *CPU) uint32 {
+func (m *instructions) res_u3_HL(cpu *CPU, bit uint8) uint32 {
 	h := cpu.register.h
 	l := cpu.register.l
 	hl := uint16(h)<<8 | uint16(l)
 
 	data := cpu.mmu.RB(hl)
 
-	result := data & ^uint8(1<<0)
+	result := data & ^uint8(1<<bit)
 
 	cpu.mmu.WB(hl, result)
 
@@ -1929,10 +1929,10 @@ Sets the bit b of the 8-bit register r to 1.
 
 Machine Cycles: 2
 */
-func (m *instructions) set_b_r(_ *CPU, register *uint8) uint32 {
+func (m *instructions) set_b_r(_ *CPU, bit uint8, register *uint8) uint32 {
 	r := *register
 
-	*register = r << 1
+	*register = r | (1 << bit)
 
 	return 2
 }
@@ -1944,14 +1944,14 @@ Sets the bit b of the 8-bit data at the absolute address specified by the 16-bit
 
 Machine Cycles: 4
 */
-func (m *instructions) set_b_HL(cpu *CPU) uint32 {
+func (m *instructions) set_b_HL(cpu *CPU, bit uint8) uint32 {
 	h := cpu.register.h
 	l := cpu.register.l
 	hl := uint16(h)<<8 | uint16(l)
 
 	data := cpu.mmu.RB(hl)
 
-	result := data << 1
+	result := data | (1 << bit)
 
 	cpu.mmu.WB(hl, result)
 
