@@ -444,6 +444,7 @@ func (m *instructions) add_HL(cpu *CPU) uint32 {
 	cpu.register.setFlag("N", false)
 	cpu.register.setFlag("H", (a&0xF)+(n&0xF) > 0xF)
 	cpu.register.setFlag("C", uint16(a)+uint16(n) > 0xFF)
+	cpu.register.a = sum
 
 	return 2
 }
@@ -1431,13 +1432,14 @@ func (m *instructions) rlc_HL(cpu *CPU) uint32 {
 	data := cpu.mmu.RB(hl)
 
 	b7 := (data & (1 << 7)) >> 7
+	res := data<<1 | b7
 
-	cpu.register.setFlag("Z", b7 == 0)
+	cpu.register.setFlag("Z", res == 0)
 	cpu.register.setFlag("N", false)
 	cpu.register.setFlag("H", false)
 	cpu.register.setFlag("C", b7 != 0)
 
-	cpu.register.b = data<<1 | b7
+	cpu.mmu.WB(hl, res)
 
 	return 4
 }
