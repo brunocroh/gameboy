@@ -258,13 +258,37 @@ func (m *CPU) execInstruction(opcode byte) {
 	case 0x8F:
 		ticks = m.ins.adc_r(m, &m.register.a)
 	case 0x90:
-		ticks = m.ins.sub_r(m)
+		ticks = m.ins.sub_r(m, &m.register.b)
+	case 0x91:
+		ticks = m.ins.sub_r(m, &m.register.c)
+	case 0x92:
+		ticks = m.ins.sub_r(m, &m.register.d)
+	case 0x93:
+		ticks = m.ins.sub_r(m, &m.register.e)
+	case 0x94:
+		ticks = m.ins.sub_r(m, &m.register.h)
+	case 0x95:
+		ticks = m.ins.sub_r(m, &m.register.l)
 	case 0x96:
 		ticks = m.ins.sub_HL(m)
+	case 0x97:
+		ticks = m.ins.sub_r(m, &m.register.a)
 	case 0x98:
-		ticks = m.ins.sbc_r(m)
+		ticks = m.ins.sbc_r(m, &m.register.b)
+	case 0x99:
+		ticks = m.ins.sbc_r(m, &m.register.c)
+	case 0x9A:
+		ticks = m.ins.sbc_r(m, &m.register.d)
+	case 0x9B:
+		ticks = m.ins.sbc_r(m, &m.register.e)
+	case 0x9C:
+		ticks = m.ins.sbc_r(m, &m.register.h)
+	case 0x9D:
+		ticks = m.ins.sbc_r(m, &m.register.l)
 	case 0x9E:
 		ticks = m.ins.sbc_HL(m)
+	case 0x9F:
+		ticks = m.ins.sbc_r(m, &m.register.a)
 	case 0xA0:
 		ticks = m.ins.and_r(m)
 	case 0xA6:

@@ -564,18 +564,16 @@ register.
 
 Machine Cycles: 1
 */
-func (m *instructions) sub_r(cpu *CPU) uint32 {
+func (m *instructions) sub_r(cpu *CPU, r *uint8) uint32 {
 	a := cpu.register.a
-	b := cpu.register.b
+	res := a - *r
 
-	r := a - b
-
-	cpu.register.a = r
-
-	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("Z", res == 0x0)
 	cpu.register.setFlag("N", true)
-	cpu.register.setFlag("H", (a&0x0F) < (b&0x0F))
-	cpu.register.setFlag("C", uint16(a) < uint16(b))
+	cpu.register.setFlag("H", (a&0x0F) < (*r&0x0F))
+	cpu.register.setFlag("C", uint16(a) < uint16(*r))
+
+	cpu.register.a = res
 
 	return 1
 }
@@ -640,22 +638,21 @@ back into the A register.
 
 Machine Cycles: 1
 */
-func (m *instructions) sbc_r(cpu *CPU) uint32 {
+func (m *instructions) sbc_r(cpu *CPU, r *uint8) uint32 {
 	a := cpu.register.a
-	b := cpu.register.b
 	c := uint8(0)
 	if cpu.register.getFlag("C") {
 		c = 1
 	}
 
-	r := a - b - c
+	res := a - *r - c
 
-	cpu.register.a = r
-
-	cpu.register.setFlag("Z", r == 0x0)
+	cpu.register.setFlag("Z", res == 0x0)
 	cpu.register.setFlag("N", true)
-	cpu.register.setFlag("H", (a&0x0F) < ((b&0x0F)+c))
-	cpu.register.setFlag("C", uint16(a) < (uint16(b)+uint16(c)))
+	cpu.register.setFlag("H", (a&0x0F) < ((*r&0x0F)+c))
+	cpu.register.setFlag("C", uint16(a) < (uint16(*r)+uint16(c)))
+
+	cpu.register.a = res
 
 	return 1
 }
