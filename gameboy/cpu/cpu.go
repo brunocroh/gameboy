@@ -602,7 +602,7 @@ func (m *CPU) execInstruction(opcode byte) {
 		m.doCycle(ticks)
 	}
 
-	fmt.Printf("A:%02x F:%02x B:%02x C:%02x D:%02x E:%02x H:%02x L:%02x SP:%04x PC:%04x PCMEM:%02x,%02x,%02x,%02x\n",
+	fmt.Printf("A:%02X F:%02X B:%02X C:%02X D:%02X E:%02X H:%02X L:%02X SP:%04X PC:%04X PCMEM:%02X,%02X,%02X,%02X\n",
 		m.register.a,
 		m.register.f,
 		m.register.b,

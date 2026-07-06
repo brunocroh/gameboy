@@ -56,6 +56,11 @@ func (m *MemoryManagementUnitSimple) RB(address uint16) byte {
 }
 
 func (m *MemoryManagementUnitSimple) WB(address uint16, value byte) {
+	// if address == 0xDEF6 && value == 0x1E {
+	// 	print("WRITETO: \n", value)
+	// 	os.Exit(1)
+	// }
+
 	switch address {
 	case 0xFF04, 0xFF05, 0xFF06, 0xFF07:
 		m.timer.write(address, value)

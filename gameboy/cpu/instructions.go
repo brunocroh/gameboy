@@ -872,7 +872,8 @@ func (m *instructions) dec_HL(cpu *CPU) uint32 {
 
 	cpu.register.setFlag("Z", r == 0x0)
 	cpu.register.setFlag("N", true)
-	cpu.register.setFlag("H", (data&0x0F)-1 > 0x0F)
+	// cpu.register.setFlag("H", (data&0x0F)-1 > 0x0F)
+	cpu.register.setFlag("H", (data&0x0F) == 0)
 
 	return 3
 }
@@ -1456,7 +1457,7 @@ Machine Cycles: 2
 func (m *instructions) rrc_r(cpu *CPU, register *uint8) uint32 {
 	r := *register
 
-	b0 := (r & (0x01 << 0))
+	b0 := r & (1 << 0)
 	res := (r >> 1) | (b0 << 7)
 
 	cpu.register.setFlag("Z", res == 0)
@@ -1470,11 +1471,11 @@ func (m *instructions) rrc_r(cpu *CPU, register *uint8) uint32 {
 }
 
 /*
-0xCB + 0x0E - RLC (HL): Rotate left circular (indirect HL)
+0xCB + 0x0E - RRC (HL): Rotate right circular (indirect HL)
 
-Rotates, the 8-bit data at the absolute address specified by the 16-bit register HL, left in a
+Rotates, the 8-bit data at the absolute address specified by the 16-bit register HL, right in a
 circular manner (carry flag is updated but not used).
-Every bit is shifted to the left (e.g. bit 1 value is copied from bit 0). Bit 7 is copied both to bit 0
+Every bit is shifted to the right (e.g. bit 1 value is copied to bit 0). Bit 0 is copied both to bit 7
 and the carry flag.
 
 Machine Cycles: 4
@@ -1486,14 +1487,15 @@ func (m *instructions) rrc_HL(cpu *CPU) uint32 {
 
 	data := cpu.mmu.RB(hl)
 
-	b0 := (data & (1 << 0)) << 7
+	b0 := data & (1 << 0)
+	res := (data >> 1) | (b0 << 7)
 
-	cpu.register.setFlag("Z", b0 == 0)
+	cpu.register.setFlag("Z", res == 0)
 	cpu.register.setFlag("N", false)
 	cpu.register.setFlag("H", false)
 	cpu.register.setFlag("C", b0 != 0)
 
-	cpu.register.b = data>>1 | b0
+	cpu.mmu.WB(hl, res)
 
 	return 4
 }
